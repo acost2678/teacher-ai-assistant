@@ -21,7 +21,7 @@ export default function ParentEmailPage() {
   const [generatedEmail, setGeneratedEmail] = useState('')
   const [copied, setCopied] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [showExemplar, setShowExemplar] = useState(false)
+  const [showDemo, setShowDemo] = useState(false)
   const fileInputRef = useRef(null)
   const outputRef = useRef(null)
   const router = useRouter()
@@ -39,23 +39,23 @@ export default function ParentEmailPage() {
     checkSession()
   }, [router])
 
-  const handleShowExemplar = () => {
+  const handleShowDemo = () => {
     setStudentName('Marcus Johnson')
     setParentName('Mrs. Johnson')
     setEmailType('Positive News')
     setTone('Warm & Friendly')
     setKeyPoints('Marcus has shown incredible improvement in math this week. He helped two classmates understand fractions during group work. He scored 95% on his quiz. I wanted to share this positive news with you!')
-    setShowExemplar(true)
+    setShowDemo(true)
     setGeneratedEmail('')
   }
 
-  const handleResetExemplar = () => {
+  const handleResetDemo = () => {
     setStudentName('')
     setParentName('')
     setEmailType('General Update')
     setTone('Warm & Friendly')
     setKeyPoints('')
-    setShowExemplar(false)
+    setShowDemo(false)
     setGeneratedEmail('')
   }
 
@@ -210,9 +210,9 @@ export default function ParentEmailPage() {
               <p className="text-gray-500">Generate professional parent communication with customizable tone.</p>
             </div>
             <div className="flex items-center gap-3">
-              {showExemplar && (
+              {showDemo && (
                 <button
-                  onClick={handleResetExemplar}
+                  onClick={handleResetDemo}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                   title="Reset"
                 >
@@ -220,21 +220,21 @@ export default function ParentEmailPage() {
                 </button>
               )}
               <button
-                onClick={handleShowExemplar}
-                className={`text-sm font-medium transition-colors ${showExemplar ? 'text-gray-400' : 'text-purple-600 hover:text-purple-700'}`}
+                onClick={handleShowDemo}
+                className={`text-sm font-medium transition-colors ${showDemo ? 'text-gray-400' : 'text-purple-600 hover:text-purple-700'}`}
               >
-                Show exemplar
+                Show Demo
               </button>
             </div>
           </div>
 
           {/* Exemplar Banner */}
-          {showExemplar && (
+          {showDemo && (
             <div className="bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-4 mb-6">
               <div className="flex items-start gap-3">
                 <span className="text-purple-500 text-xl">✨</span>
                 <div className="flex-1">
-                  <h3 className="text-purple-700 font-medium">Exemplar is ready!</h3>
+                  <h3 className="text-purple-700 font-medium">Demo is ready!</h3>
                   <p className="text-purple-600 text-sm">We've filled in example inputs and generated an example output.</p>
                 </div>
                 <button

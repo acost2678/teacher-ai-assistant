@@ -23,7 +23,7 @@ export default function IEPUpdatePage() {
   const [generatedUpdate, setGeneratedUpdate] = useState('')
   const [copied, setCopied] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [showExemplar, setShowExemplar] = useState(false)
+  const [showDemo, setshowDemo] = useState(false)
   const outputRef = useRef(null)
   const router = useRouter()
 
@@ -40,7 +40,7 @@ export default function IEPUpdatePage() {
     checkSession()
   }, [router])
 
-  const handleShowExemplar = () => {
+  const handleshowDemo = () => {
     setStudentName('Michael Chen')
     setGradeLevel('5th Grade')
     setDisabilityCategory('Specific Learning Disability')
@@ -50,11 +50,11 @@ export default function IEPUpdatePage() {
     setCurrentProgress('Michael now reads 4th grade passages with 85% accuracy. His comprehension has improved to 70% accuracy on literal questions and 60% on inferential questions.')
     setSupportProvided('Daily small group reading instruction, graphic organizers, audiobook access, extended time on reading assignments, preferential seating.')
     setNextSteps('Continue with current supports, introduce visualization strategies for comprehension, increase complexity of texts gradually.')
-    setShowExemplar(true)
+    setshowDemo(true)
     setGeneratedUpdate('')
   }
 
-  const handleResetExemplar = () => {
+  const handleResetDemo = () => {
     setStudentName('')
     setGradeLevel('3rd Grade')
     setDisabilityCategory('Specific Learning Disability')
@@ -64,7 +64,7 @@ export default function IEPUpdatePage() {
     setCurrentProgress('')
     setSupportProvided('')
     setNextSteps('')
-    setShowExemplar(false)
+    setshowDemo(false)
     setGeneratedUpdate('')
   }
 
@@ -198,21 +198,21 @@ export default function IEPUpdatePage() {
               <p className="text-gray-500">Create IDEA-compliant IEP goal progress updates.</p>
             </div>
             <div className="flex items-center gap-3">
-              {showExemplar && (
-                <button onClick={handleResetExemplar} className="text-gray-400 hover:text-gray-600 transition-colors" title="Reset">↺</button>
+              {showDemo && (
+                <button onClick={handleResetDemo} className="text-gray-400 hover:text-gray-600 transition-colors" title="Reset">↺</button>
               )}
-              <button onClick={handleShowExemplar} className={`text-sm font-medium transition-colors ${showExemplar ? 'text-gray-400' : 'text-purple-600 hover:text-purple-700'}`}>
-                Show exemplar
+              <button onClick={handleshowDemo} className={`text-sm font-medium transition-colors ${showDemo ? 'text-gray-400' : 'text-purple-600 hover:text-purple-700'}`}>
+                Show demo
               </button>
             </div>
           </div>
 
-          {showExemplar && (
+          {showDemo && (
             <div className="bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-4 mb-6">
               <div className="flex items-start gap-3">
                 <span className="text-purple-500 text-xl">✨</span>
                 <div className="flex-1">
-                  <h3 className="text-purple-700 font-medium">Exemplar is ready!</h3>
+                  <h3 className="text-purple-700 font-medium">Demo is ready!</h3>
                   <p className="text-purple-600 text-sm">We've filled in example inputs and generated an example output.</p>
                 </div>
                 <button onClick={scrollToOutput} className="text-purple-600 hover:text-purple-700 text-sm font-medium whitespace-nowrap">

@@ -23,7 +23,7 @@ export default function MeetingNotesPage() {
   const [generatedNotes, setGeneratedNotes] = useState('')
   const [copied, setCopied] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [showExemplar, setShowExemplar] = useState(false)
+  const [seeDemo, setSedDemo] = useState(false)
   const outputRef = useRef(null)
   const router = useRouter()
 
@@ -40,7 +40,7 @@ export default function MeetingNotesPage() {
     checkSession()
   }, [router])
 
-  const handleShowExemplar = () => {
+  const handleSeeDemo = () => {
     setMeetingType('Parent-Teacher Conference')
     setMeetingDate('2024-01-18')
     setAttendees('Mrs. Garcia (teacher), Mr. and Mrs. Thompson (parents)')
@@ -50,11 +50,11 @@ export default function MeetingNotesPage() {
     setDecisions('Agreed to implement a homework check-in system. Will reduce after-school activities to 2 days per week. Teacher will send home weekly reading practice materials.')
     setActionItems('Teacher: Send reading materials by Friday. Parents: Set up homework station at home. Schedule follow-up in 4 weeks.')
     setFollowUpDate('2024-02-15')
-    setShowExemplar(true)
+    setSeeDemo(true)
     setGeneratedNotes('')
   }
 
-  const handleResetExemplar = () => {
+  const handleResetDemo = () => {
     setMeetingType('Parent-Teacher Conference')
     setMeetingDate('')
     setAttendees('')
@@ -64,7 +64,7 @@ export default function MeetingNotesPage() {
     setDecisions('')
     setActionItems('')
     setFollowUpDate('')
-    setShowExemplar(false)
+    setSeeDemo(false)
     setGeneratedNotes('')
   }
 
@@ -198,21 +198,21 @@ export default function MeetingNotesPage() {
               <p className="text-gray-500">Generate organized meeting summaries and action items.</p>
             </div>
             <div className="flex items-center gap-3">
-              {showExemplar && (
-                <button onClick={handleResetExemplar} className="text-gray-400 hover:text-gray-600 transition-colors" title="Reset">↺</button>
+              {seeDemo && (
+                <button onClick={handleResetDemo} className="text-gray-400 hover:text-gray-600 transition-colors" title="Reset">↺</button>
               )}
-              <button onClick={handleShowExemplar} className={`text-sm font-medium transition-colors ${showExemplar ? 'text-gray-400' : 'text-purple-600 hover:text-purple-700'}`}>
-                Show exemplar
+              <button onClick={handleSeeDemo} className={`text-sm font-medium transition-colors ${seeDemo ? 'text-gray-400' : 'text-purple-600 hover:text-purple-700'}`}>
+                See Demo
               </button>
             </div>
           </div>
 
-          {showExemplar && (
+          {seeDemo && (
             <div className="bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-4 mb-6">
               <div className="flex items-start gap-3">
                 <span className="text-purple-500 text-xl">✨</span>
                 <div className="flex-1">
-                  <h3 className="text-purple-700 font-medium">Exemplar is ready!</h3>
+                  <h3 className="text-purple-700 font-medium">Demo is ready!</h3>
                   <p className="text-purple-600 text-sm">We've filled in example inputs and generated an example output.</p>
                 </div>
                 <button onClick={scrollToOutput} className="text-purple-600 hover:text-purple-700 text-sm font-medium whitespace-nowrap">
