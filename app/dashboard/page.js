@@ -1,0 +1,261 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '../../lib/supabase'
+
+export default function DashboardPage() {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeCategory, setActiveCategory] = useState('all')
+  const router = useRouter()
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) {
+        router.push('/auth/login')
+      } else {
+        setUser(session.user)
+        setLoading(false)
+      }
+    }
+    checkSession()
+  }, [router])
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push('/auth/login')
+  }
+
+  const userName = user?.email?.split('@')[0] || 'Teacher'
+  const displayName = userName.charAt(0).toUpperCase() + userName.slice(1)
+
+  const categories = [
+    { id: 'all', label: 'All Tools' },
+    { id: 'documentation', label: 'Documentation' },
+    { id: 'lesson', label: 'Lesson Planning' },
+    { id: 'assessment', label: 'Assessment' },
+    { id: 'gamification', label: 'Gamification' },
+    { id: 'sel', label: 'SEL Tools' },
+    { id: 'writing', label: 'Writing' },
+    { id: 'reading', label: 'Reading' },
+    { id: 'differentiation', label: 'Differentiation' },
+    { id: 'math', label: 'Math' },
+    { id: 'management', label: 'Management' },
+  ]
+
+  const tools = [
+    // Documentation & Communication
+    { id: 'parent-email', name: 'Parent Email', icon: '📧', category: 'documentation', categoryLabel: 'Communication', description: 'Draft professional emails to parents with customizable tone' },
+    { id: 'progress-report', name: 'Progress Report', icon: '📊', category: 'documentation', categoryLabel: 'Documentation', description: 'Generate narrative student progress reports' },
+    { id: 'iep-update', name: 'IEP Update', icon: '🎯', category: 'documentation', categoryLabel: 'Documentation', description: 'Create IDEA-compliant IEP progress updates' },
+    { id: 'incident-report', name: 'Incident Report', icon: '⚠️', category: 'documentation', categoryLabel: 'Documentation', description: 'Document behavior incidents objectively' },
+    { id: 'meeting-notes', name: 'Meeting Notes', icon: '📋', category: 'documentation', categoryLabel: 'Documentation', description: 'Generate organized meeting summaries' },
+    
+    // Lesson Planning
+    { id: 'lesson-plan', name: 'Lesson Plan', icon: '📚', category: 'lesson', categoryLabel: 'Instructional Materials', description: 'Create standards-aligned lesson plans with differentiation' },
+    { id: 'pacing-guide', name: 'Pacing Guide', icon: '📅', category: 'lesson', categoryLabel: 'Instructional Materials', description: 'Map curriculum across weeks or quarters' },
+    { id: 'warm-up', name: 'Warm-Up Generator', icon: '🌅', category: 'lesson', categoryLabel: 'Instructional Materials', description: 'Create engaging bell ringers and do-nows' },
+    { id: 'exit-ticket', name: 'Exit Ticket', icon: '🎫', category: 'lesson', categoryLabel: 'Assessment', description: 'Quick formative assessment checks' },
+    
+    // Assessment
+    { id: 'rubric', name: 'Rubric Builder', icon: '📊', category: 'assessment', categoryLabel: 'Assessment', description: 'Create clear scoring criteria for any assignment' },
+    { id: 'quiz', name: 'Quiz/Test Generator', icon: '📝', category: 'assessment', categoryLabel: 'Assessment', description: 'Generate aligned assessments with answer keys' },
+    { id: 'question-bank', name: 'Question Bank', icon: '🏦', category: 'assessment', categoryLabel: 'Assessment', description: 'Build reusable questions by standard' },
+    
+    // Gamification
+    { id: 'quest', name: 'Quest Designer', icon: '🗡️', category: 'gamification', categoryLabel: 'Engagement', description: 'Create learning adventures with storylines' },
+    { id: 'boss-battle', name: 'Boss Battle', icon: '🐉', category: 'gamification', categoryLabel: 'Engagement', description: 'Turn review into epic game battles' },
+    { id: 'badges', name: 'Badge Designer', icon: '🏆', category: 'gamification', categoryLabel: 'Engagement', description: 'Design achievement badges with tiers' },
+    { id: 'xp-system', name: 'XP System', icon: '⚡', category: 'gamification', categoryLabel: 'Engagement', description: 'Complete classroom point system' },
+    
+    // SEL Tools
+    { id: 'sel-checkin', name: 'SEL Check-In', icon: '💚', category: 'sel', categoryLabel: 'Student Support', description: 'CASEL-aligned morning meeting prompts' },
+    { id: 'sel-activity', name: 'SEL Activity', icon: '🎯', category: 'sel', categoryLabel: 'Student Support', description: 'Classroom activities for all 5 competencies' },
+    { id: 'calming-corner', name: 'Calming Corner', icon: '🧘', category: 'sel', categoryLabel: 'Student Support', description: 'Self-regulation strategies with scripts' },
+    { id: 'conflict-resolution', name: 'Conflict Resolution', icon: '🕊️', category: 'sel', categoryLabel: 'Student Support', description: 'Restorative conversation scripts' },
+    { id: 'sel-worksheet', name: 'SEL Worksheet', icon: '📝', category: 'sel', categoryLabel: 'Student Support', description: 'Printable social-emotional skill builders' },
+    { id: 'social-story', name: 'Social Story', icon: '📖', category: 'sel', categoryLabel: 'Student Support', description: 'Visual social narratives using Carol Gray method' },
+    { id: 'team-building', name: 'Team Building', icon: '🤝', category: 'sel', categoryLabel: 'Student Support', description: 'Community-building activities with debrief' },
+    
+    // Writing
+    { id: 'essay-feedback', name: 'Essay Feedback', icon: '✍️', category: 'writing', categoryLabel: 'Writing', description: 'Generate detailed, growth-focused writing feedback' },
+    { id: 'writing-prompt', name: 'Writing Prompt', icon: '📝', category: 'writing', categoryLabel: 'Writing', description: 'Engaging prompts for all genres' },
+    { id: 'peer-review', name: 'Peer Review Guide', icon: '👥', category: 'writing', categoryLabel: 'Writing', description: 'Structured student feedback guides' },
+    { id: 'writing-conference', name: 'Writing Conference', icon: '📋', category: 'writing', categoryLabel: 'Writing', description: 'Conference guides with questions and tips' },
+    
+    // Reading
+    { id: 'comprehension', name: 'Comprehension Qs', icon: '📖', category: 'reading', categoryLabel: 'Reading', description: 'DOK-leveled text-dependent questions' },
+    { id: 'vocabulary', name: 'Vocabulary Builder', icon: '📚', category: 'reading', categoryLabel: 'Reading', description: 'Deep word knowledge with Frayer model' },
+    { id: 'guided-reading', name: 'Guided Reading', icon: '📖', category: 'reading', categoryLabel: 'Reading', description: 'Small group lesson plans' },
+    { id: 'reading-response', name: 'Reading Response', icon: '📝', category: 'reading', categoryLabel: 'Reading', description: 'Response prompts by genre' },
+    
+    // Differentiation
+    { id: 'text-level', name: 'Text Leveler', icon: '📊', category: 'differentiation', categoryLabel: 'Differentiation', description: 'Adjust text to specific Lexile levels' },
+    { id: 'tiered-activity', name: 'Tiered Activities', icon: '🎯', category: 'differentiation', categoryLabel: 'Differentiation', description: '3-tier differentiation, same objective' },
+    { id: 'scaffold', name: 'Scaffold Builder', icon: '🛠️', category: 'differentiation', categoryLabel: 'Differentiation', description: 'Learning supports with gradual release' },
+    { id: 'accommodation', name: 'Accommodations', icon: '♿', category: 'differentiation', categoryLabel: 'Differentiation', description: 'IEP/504/ELL support suggestions' },
+    
+    // Math
+    { id: 'error-analysis', name: 'Error Analysis', icon: '🔍', category: 'math', categoryLabel: 'Math', description: 'Diagnose misconceptions with re-teaching' },
+    { id: 'concept-explainer', name: 'Concept Explainer', icon: '📐', category: 'math', categoryLabel: 'Math', description: 'Multiple representations for concepts' },
+    { id: 'math-feedback', name: 'Math Feedback', icon: '✨', category: 'math', categoryLabel: 'Math', description: 'Growth-mindset feedback on math work' },
+    { id: 'word-problems', name: 'Word Problems', icon: '🔢', category: 'math', categoryLabel: 'Math', description: 'Engaging problems with student interests' },
+    
+    // Management
+    { id: 'procedure', name: 'Procedure Builder', icon: '📋', category: 'management', categoryLabel: 'Management', description: 'Teachable routines with I Do/We Do/You Do' },
+    { id: 'seating', name: 'Seating Chart', icon: '🪑', category: 'management', categoryLabel: 'Management', description: 'Strategic grouping recommendations' },
+    { id: 'behavior-plan', name: 'Behavior Plan', icon: '💚', category: 'management', categoryLabel: 'Management', description: 'PBS interventions, function-based' },
+    { id: 'sub-plan', name: 'Sub Plans', icon: '📝', category: 'management', categoryLabel: 'Management', description: 'Emergency-ready substitute packets' },
+  ]
+
+  const filteredTools = tools.filter(tool => {
+    const matchesSearch = tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         tool.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCategory = activeCategory === 'all' || tool.category === activeCategory
+    return matchesSearch && matchesCategory
+  })
+
+  const recommendedTools = tools.slice(0, 4)
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <h1 className="text-xl font-semibold text-gray-800">Teacher Tools</h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.push('/dashboard/history')}
+              className="text-gray-500 hover:text-gray-700 text-sm"
+            >
+              📜 History
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-600 text-sm">{displayName}</span>
+              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                {displayName.charAt(0)}
+              </div>
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="text-gray-400 hover:text-red-500 text-sm"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* Welcome Section */}
+        <div className="text-center mb-8">
+          <div className="text-5xl mb-4">🍎</div>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+            Hi {displayName}, you're amazing.
+          </h2>
+          <p className="text-gray-500">43 AI-powered tools to save you time</p>
+        </div>
+
+        {/* Search Bar */}
+        <div className="max-w-2xl mx-auto mb-10">
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+            <input
+              type="text"
+              placeholder="Search all tools"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700"
+            />
+          </div>
+        </div>
+
+        {/* Recommended Tools */}
+        {!searchQuery && activeCategory === 'all' && (
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-gray-100">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-purple-500">✨</span>
+              <h3 className="font-medium text-gray-700">We recommend getting started with these tools</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {recommendedTools.map(tool => (
+                <div
+                  key={tool.id}
+                  onClick={() => router.push(`/dashboard/${tool.id}`)}
+                  className="bg-white p-4 rounded-xl border border-gray-100 hover:border-purple-200 hover:shadow-md cursor-pointer transition-all"
+                >
+                  <span className="text-xs text-gray-400 flex items-center gap-1 mb-1">
+                    <span>📄</span> {tool.categoryLabel}
+                  </span>
+                  <h4 className="font-medium text-gray-800">{tool.name}</h4>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Category Filter */}
+        <div className="flex items-center gap-3 mb-6 flex-wrap">
+          <span className="text-sm text-gray-500">Filter by</span>
+          <div className="flex gap-2 flex-wrap">
+            {categories.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  activeCategory === cat.id
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tools Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredTools.map(tool => (
+            <div
+              key={tool.id}
+              onClick={() => router.push(`/dashboard/${tool.id}`)}
+              className="bg-white p-5 rounded-xl border border-gray-100 hover:border-purple-200 hover:shadow-lg cursor-pointer transition-all group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="text-3xl">{tool.icon}</div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="font-semibold text-gray-800 group-hover:text-purple-600 transition-colors">
+                      {tool.name}
+                    </h4>
+                  </div>
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    {tool.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {filteredTools.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-400">No tools found matching your search.</p>
+          </div>
+        )}
+      </main>
+    </div>
+  )
+}
