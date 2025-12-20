@@ -44,9 +44,11 @@ export default function DashboardPage() {
 
   const tools = [
     // Communication Hub - Parent contact & meetings
-    { id: 'batch-progress-reports', name: 'Batch Progress Reports', icon: '📊', category: 'communication', categoryLabel: 'Communication', description: 'Generate reports for your entire class in minutes', badge: 'NEW' },
+    { id: 'batch-progress-reports', name: 'Batch Student Reports', icon: '📊', category: 'communication', categoryLabel: 'Communication', description: 'Progress reports OR report card comments for your whole class', badge: 'NEW' },
     { id: 'batch-parent-emails', name: 'Batch Parent Emails', icon: '📧', category: 'communication', categoryLabel: 'Communication', description: 'Personalized parent emails for your whole class', badge: 'NEW' },
-    { id: 'parent-email', name: 'Parent Email', icon: '✉️', category: 'communication', categoryLabel: 'Communication', description: 'Draft professional emails to parents with customizable tone' },
+    { id: 'batch-recommendation-letters', name: 'Batch Rec Letters', icon: '✉️', category: 'communication', categoryLabel: 'Communication', description: 'Personalized recommendation letters for multiple students', badge: 'NEW' },
+    { id: 'diplomat-mode', name: 'Diplomat Mode', icon: '🕊️', category: 'communication', categoryLabel: 'Communication', description: 'Check email tone before sending - prevent conflicts', badge: 'NEW' },
+    { id: 'parent-email', name: 'Parent Email', icon: '💌', category: 'communication', categoryLabel: 'Communication', description: 'Draft professional emails to parents with customizable tone' },
     { id: 'meeting-notes', name: 'Meeting Notes', icon: '📋', category: 'communication', categoryLabel: 'Communication', description: 'Generate organized meeting summaries' },
     { id: 'progress-report', name: 'Progress Report', icon: '📝', category: 'communication', categoryLabel: 'Communication', description: 'Generate individual student progress reports' },
     
@@ -84,7 +86,8 @@ export default function DashboardPage() {
     { id: 'team-building', name: 'Team Building', icon: '🤝', category: 'support', categoryLabel: 'Student Support', description: 'Community-building activities with debrief' },
     
     // Instructional Prep - Lesson planning & content creation
-    { id: 'lesson-plan', name: 'Lesson Plan', icon: '📚', category: 'instructional', categoryLabel: 'Instructional', description: 'Create standards-aligned lesson plans with differentiation' },
+    { id: 'batch-differentiation', name: 'Batch Differentiation', icon: '📚', category: 'instructional', categoryLabel: 'Instructional', description: 'One assignment → Three tiered versions (below, on, above level)', badge: 'NEW' },
+    { id: 'lesson-plan', name: 'Lesson Plan', icon: '📖', category: 'instructional', categoryLabel: 'Instructional', description: 'Create standards-aligned lesson plans with differentiation' },
     { id: 'pacing-guide', name: 'Pacing Guide', icon: '📅', category: 'instructional', categoryLabel: 'Instructional', description: 'Map curriculum across weeks or quarters' },
     { id: 'warm-up', name: 'Warm-Up Generator', icon: '🌅', category: 'instructional', categoryLabel: 'Instructional', description: 'Create engaging bell ringers and do-nows' },
     { id: 'writing-prompt', name: 'Writing Prompt', icon: '📝', category: 'instructional', categoryLabel: 'Instructional', description: 'Engaging prompts for all genres' },

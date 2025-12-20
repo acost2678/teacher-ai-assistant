@@ -12,11 +12,14 @@ export default function BatchProgressReportsPage() {
   const [exporting, setExporting] = useState(false)
   
   // Settings
+  const [reportType, setReportType] = useState('progress-report')
   const [gradeLevel, setGradeLevel] = useState('3rd Grade')
   const [subject, setSubject] = useState('English Language Arts')
   const [gradingPeriod, setGradingPeriod] = useState('Quarter 2')
   const [tone, setTone] = useState('warm')
   const [reportLength, setReportLength] = useState('medium')
+  const [commentStyle, setCommentStyle] = useState('balanced')
+  const [includeGoals, setIncludeGoals] = useState(true)
   
   // Students data - privacy-first: no names stored, just numbered entries
   const [numberOfStudents, setNumberOfStudents] = useState(5)
@@ -50,7 +53,7 @@ export default function BatchProgressReportsPage() {
       setStudentNotes(prev => {
         const newNotes = [...prev]
         while (newNotes.length < numberOfStudents) {
-          newNotes.push({ identifier: `Student ${newNotes.length + 1}`, strengths: '', improvements: '', notes: '' })
+          newNotes.push({ identifier: `Student ${newNotes.length + 1}`, grade: '', strengths: '', improvements: '', behavior: '', notes: '' })
         }
         return newNotes.slice(0, numberOfStudents)
       })
@@ -58,29 +61,38 @@ export default function BatchProgressReportsPage() {
   }, [numberOfStudents, showDemo])
 
   const handleShowDemo = () => {
+    setReportType('progress-report')
     setGradeLevel('4th Grade')
     setSubject('Mathematics')
     setGradingPeriod('Quarter 2')
     setTone('warm')
     setReportLength('medium')
+    setCommentStyle('balanced')
+    setIncludeGoals(true)
     setNumberOfStudents(3)
     setStudentNotes([
       { 
         identifier: 'Student A', 
+        grade: 'A-',
         strengths: 'Excellent problem-solving, strong multiplication facts, helps classmates', 
         improvements: 'Needs to show work on multi-step problems', 
+        behavior: 'Model student, always prepared',
         notes: 'Very engaged during math centers' 
       },
       { 
         identifier: 'Student B', 
+        grade: 'B',
         strengths: 'Great effort and persistence, improved on fractions', 
         improvements: 'Struggles with word problems, needs extra time', 
+        behavior: 'Good participation, sometimes off-task',
         notes: 'Benefits from visual models' 
       },
       { 
         identifier: 'Student C', 
+        grade: 'C+',
         strengths: 'Quick with mental math, participates actively', 
         improvements: 'Rushes through work, makes careless errors', 
+        behavior: 'Enthusiastic but needs reminders to slow down',
         notes: 'Encourage to double-check answers' 
       },
     ])
@@ -90,11 +102,14 @@ export default function BatchProgressReportsPage() {
   }
 
   const handleResetDemo = () => {
+    setReportType('progress-report')
     setGradeLevel('3rd Grade')
     setSubject('English Language Arts')
     setGradingPeriod('Quarter 2')
     setTone('warm')
     setReportLength('medium')
+    setCommentStyle('balanced')
+    setIncludeGoals(true)
     setNumberOfStudents(5)
     setStudentNotes([])
     setGeneratedReports([])
@@ -147,14 +162,19 @@ export default function BatchProgressReportsPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            reportType,
             gradeLevel,
             subject,
             gradingPeriod,
             tone,
             reportLength,
+            commentStyle,
+            includeGoals,
             studentIdentifier: student.identifier,
+            grade: student.grade,
             strengths: student.strengths,
             improvements: student.improvements,
+            behavior: student.behavior,
             notes: student.notes,
           }),
         })
@@ -267,7 +287,7 @@ export default function BatchProgressReportsPage() {
           <div className="flex items-center gap-2 text-sm">
             <button onClick={() => router.push('/dashboard')} className="text-gray-500 hover:text-purple-600 transition-colors">Tools</button>
             <span className="text-gray-300">›</span>
-            <span className="text-gray-800 font-medium">Batch Progress Reports</span>
+            <span className="text-gray-800 font-medium">Batch Student Reports</span>
           </div>
         </div>
       </header>
@@ -279,10 +299,45 @@ export default function BatchProgressReportsPage() {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-3xl">📊</span>
-                <h1 className="text-2xl font-semibold text-gray-800">Batch Progress Reports</h1>
+                <h1 className="text-2xl font-semibold text-gray-800">Batch Student Reports</h1>
                 <span className="bg-purple-100 text-purple-700 text-xs font-medium px-2 py-1 rounded-full">TIME SAVER</span>
               </div>
-              <p className="text-gray-500">Generate personalized progress reports for your entire class in minutes, not hours.</p>
+              <p className="text-gray-500">Generate progress reports OR report card comments for your entire class. One tool, two formats.</p>
+            </div>
+          </div>
+
+          {/* Report Type Toggle */}
+          <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-4">
+            <h3 className="text-purple-800 font-medium mb-3">What do you need?</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setReportType('progress-report')}
+                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                  reportType === 'progress-report'
+                    ? 'border-purple-500 bg-white'
+                    : 'border-gray-200 bg-white/50 hover:border-purple-300'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span>📄</span>
+                  <span className="font-medium text-gray-800">Progress Report</span>
+                </div>
+                <p className="text-xs text-gray-500">Standalone documents to send home (conferences, mid-quarter updates)</p>
+              </button>
+              <button
+                onClick={() => setReportType('report-card-comment')}
+                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                  reportType === 'report-card-comment'
+                    ? 'border-purple-500 bg-white'
+                    : 'border-gray-200 bg-white/50 hover:border-purple-300'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span>📝</span>
+                  <span className="font-medium text-gray-800">Report Card Comment</span>
+                </div>
+                <p className="text-xs text-gray-500">Short narrative comments to paste into your report card system</p>
+              </button>
             </div>
           </div>
 
@@ -347,7 +402,9 @@ export default function BatchProgressReportsPage() {
           <div className="space-y-6">
             {/* Settings */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Report Settings (applies to all)</h2>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                {reportType === 'progress-report' ? 'Report Settings' : 'Comment Settings'} (applies to all)
+              </h2>
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                 <div>
@@ -377,17 +434,32 @@ export default function BatchProgressReportsPage() {
                     ))}
                   </select>
                 </div>
+                {reportType === 'progress-report' ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Tone</label>
+                    <select value={tone} onChange={(e) => setTone(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700">
+                      <option value="warm">Warm & Encouraging</option>
+                      <option value="professional">Professional & Direct</option>
+                      <option value="detailed">Detailed & Thorough</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comment Style</label>
+                    <select value={commentStyle} onChange={(e) => setCommentStyle(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700">
+                      <option value="balanced">Balanced (Strengths + Growth)</option>
+                      <option value="strength-focused">Strength-Focused</option>
+                      <option value="growth-focused">Growth-Focused</option>
+                      <option value="celebratory">Celebratory</option>
+                    </select>
+                  </div>
+                )}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tone</label>
-                  <select value={tone} onChange={(e) => setTone(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700">
-                    <option value="warm">Warm & Encouraging</option>
-                    <option value="professional">Professional & Direct</option>
-                    <option value="detailed">Detailed & Thorough</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Report Length</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {reportType === 'progress-report' ? 'Report Length' : 'Comment Length'}
+                  </label>
                   <select value={reportLength} onChange={(e) => setReportLength(e.target.value)}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700">
                     <option value="short">Short (2-3 sentences)</option>
@@ -405,6 +477,20 @@ export default function BatchProgressReportsPage() {
                   </select>
                 </div>
               </div>
+              
+              {reportType === 'report-card-comment' && (
+                <div className="pt-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={includeGoals}
+                      onChange={(e) => setIncludeGoals(e.target.checked)}
+                      className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    />
+                    <span className="text-gray-700 text-sm">Include goals/next steps in comments</span>
+                  </label>
+                </div>
+              )}
             </div>
 
             {/* Student Notes */}
@@ -428,8 +514,17 @@ export default function BatchProgressReportsPage() {
                         placeholder="Student identifier (e.g., 'Student 1' or initials)"
                         className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
+                      {reportType === 'report-card-comment' && (
+                        <input
+                          type="text"
+                          value={student.grade || ''}
+                          onChange={(e) => updateStudentNote(index, 'grade', e.target.value)}
+                          placeholder="Grade (A, B+, etc.)"
+                          className="w-28 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      )}
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className={`grid grid-cols-1 gap-3 ${reportType === 'report-card-comment' ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
                       <div>
                         <label className="block text-xs font-medium text-gray-600 mb-1">Strengths</label>
                         <textarea
@@ -450,12 +545,24 @@ export default function BatchProgressReportsPage() {
                           className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                         />
                       </div>
+                      {reportType === 'report-card-comment' && (
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Behavior/Work Habits</label>
+                          <textarea
+                            value={student.behavior || ''}
+                            onChange={(e) => updateStudentNote(index, 'behavior', e.target.value)}
+                            placeholder="Participation, effort..."
+                            rows={2}
+                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                          />
+                        </div>
+                      )}
                       <div>
                         <label className="block text-xs font-medium text-gray-600 mb-1">Additional Notes</label>
                         <textarea
                           value={student.notes}
                           onChange={(e) => updateStudentNote(index, 'notes', e.target.value)}
-                          placeholder="Behavior, participation, etc."
+                          placeholder={reportType === 'progress-report' ? 'Behavior, participation, etc.' : 'IEP, special programs, context...'}
                           rows={2}
                           className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                         />
@@ -475,12 +582,12 @@ export default function BatchProgressReportsPage() {
               {generating ? (
                 <>
                   <span className="animate-spin">⏳</span>
-                  Generating report {currentStudent} of {numberOfStudents}...
+                  Generating {reportType === 'progress-report' ? 'report' : 'comment'} {currentStudent} of {numberOfStudents}...
                 </>
               ) : (
                 <>
                   <span>✨</span>
-                  Generate All Reports ({numberOfStudents} students)
+                  Generate All {reportType === 'progress-report' ? 'Reports' : 'Comments'} ({numberOfStudents} students)
                 </>
               )}
             </button>
