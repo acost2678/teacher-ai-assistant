@@ -44,9 +44,11 @@ export default function DashboardPage() {
 
   const tools = [
     // Communication Hub - Parent contact & meetings
-    { id: 'parent-email', name: 'Parent Email', icon: '📧', category: 'communication', categoryLabel: 'Communication', description: 'Draft professional emails to parents with customizable tone' },
+    { id: 'batch-progress-reports', name: 'Batch Progress Reports', icon: '📊', category: 'communication', categoryLabel: 'Communication', description: 'Generate reports for your entire class in minutes', badge: 'NEW' },
+    { id: 'batch-parent-emails', name: 'Batch Parent Emails', icon: '📧', category: 'communication', categoryLabel: 'Communication', description: 'Personalized parent emails for your whole class', badge: 'NEW' },
+    { id: 'parent-email', name: 'Parent Email', icon: '✉️', category: 'communication', categoryLabel: 'Communication', description: 'Draft professional emails to parents with customizable tone' },
     { id: 'meeting-notes', name: 'Meeting Notes', icon: '📋', category: 'communication', categoryLabel: 'Communication', description: 'Generate organized meeting summaries' },
-    { id: 'progress-report', name: 'Progress Report', icon: '📊', category: 'communication', categoryLabel: 'Communication', description: 'Generate narrative student progress reports' },
+    { id: 'progress-report', name: 'Progress Report', icon: '📝', category: 'communication', categoryLabel: 'Communication', description: 'Generate individual student progress reports' },
     
     // Grading & Assessment - Evaluation workflows
     { id: 'rubric', name: 'Rubric Builder', icon: '📊', category: 'grading', categoryLabel: 'Grading', description: 'Create clear scoring criteria for any assignment' },
@@ -107,8 +109,8 @@ export default function DashboardPage() {
   })
 
   const recommendedTools = [
-    tools.find(t => t.id === 'parent-email'),
-    tools.find(t => t.id === 'progress-report'),
+    tools.find(t => t.id === 'batch-progress-reports'),
+    tools.find(t => t.id === 'batch-parent-emails'),
     tools.find(t => t.id === 'rubric'),
     tools.find(t => t.id === 'behavior-plan'),
   ].filter(Boolean)
@@ -198,7 +200,14 @@ export default function DashboardPage() {
                   <span className="text-xs text-gray-400 flex items-center gap-1 mb-1">
                     <span>📄</span> {tool.categoryLabel}
                   </span>
-                  <h4 className="font-medium text-gray-800">{tool.name}</h4>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium text-gray-800">{tool.name}</h4>
+                    {tool.badge && (
+                      <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded-full">
+                        {tool.badge}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -233,13 +242,18 @@ export default function DashboardPage() {
               onClick={() => router.push(`/dashboard/${tool.id}`)}
               className="bg-white p-5 rounded-xl border border-gray-100 hover:border-purple-200 hover:shadow-lg cursor-pointer transition-all group"
             >
-              <div className="flex items-start gap-4">
+                <div className="flex items-start gap-4">
                 <div className="text-3xl">{tool.icon}</div>
                 <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2 mb-1">
                     <h4 className="font-semibold text-gray-800 group-hover:text-purple-600 transition-colors">
                       {tool.name}
                     </h4>
+                    {tool.badge && (
+                      <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded-full">
+                        {tool.badge}
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-gray-500 leading-relaxed">
                     {tool.description}
