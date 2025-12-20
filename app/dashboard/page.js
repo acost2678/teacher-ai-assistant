@@ -51,15 +51,18 @@ export default function DashboardPage() {
     { id: 'progress-report', name: 'Progress Report', icon: '📝', category: 'communication', categoryLabel: 'Communication', description: 'Generate individual student progress reports' },
     
     // Grading & Assessment - Evaluation workflows
+    { id: 'batch-essay-feedback', name: 'Batch Essay Feedback', icon: '✍️', category: 'grading', categoryLabel: 'Grading', description: 'Template-based feedback for entire class using YOUR rubric', badge: 'NEW' },
     { id: 'rubric', name: 'Rubric Builder', icon: '📊', category: 'grading', categoryLabel: 'Grading', description: 'Create clear scoring criteria for any assignment' },
-    { id: 'essay-feedback', name: 'Essay Feedback', icon: '✍️', category: 'grading', categoryLabel: 'Grading', description: 'Generate detailed, growth-focused writing feedback' },
+    { id: 'essay-feedback', name: 'Essay Feedback', icon: '📝', category: 'grading', categoryLabel: 'Grading', description: 'Quick feedback for a single essay' },
     { id: 'math-feedback', name: 'Math Feedback', icon: '✨', category: 'grading', categoryLabel: 'Grading', description: 'Growth-mindset feedback on math work' },
     { id: 'quiz', name: 'Quiz/Test Generator', icon: '📝', category: 'grading', categoryLabel: 'Grading', description: 'Generate aligned assessments with answer keys' },
     { id: 'question-bank', name: 'Question Bank', icon: '🏦', category: 'grading', categoryLabel: 'Grading', description: 'Build reusable questions by standard' },
     { id: 'exit-ticket', name: 'Exit Ticket', icon: '🎫', category: 'grading', categoryLabel: 'Grading', description: 'Quick formative assessment checks' },
     
     // Compliance & Documentation - Legal & required paperwork
-    { id: 'iep-update', name: 'IEP Update', icon: '🎯', category: 'compliance', categoryLabel: 'Compliance', description: 'Create IDEA-compliant IEP progress updates' },
+    { id: 'batch-iep-updates', name: 'Batch IEP Updates', icon: '📋', category: 'compliance', categoryLabel: 'Compliance', description: 'IDEA-compliant progress updates for your entire caseload', badge: 'NEW' },
+    { id: 'fba-writer', name: 'FBA Writer', icon: '🔍', category: 'compliance', categoryLabel: 'Compliance', description: 'Generate FBAs with function hypothesis from ABC data', badge: 'NEW' },
+    { id: 'iep-update', name: 'IEP Update', icon: '🎯', category: 'compliance', categoryLabel: 'Compliance', description: 'Single IEP progress update' },
     { id: 'incident-report', name: 'Incident Report', icon: '⚠️', category: 'compliance', categoryLabel: 'Compliance', description: 'Document behavior incidents objectively' },
     { id: 'accommodation', name: 'Accommodations', icon: '♿', category: 'compliance', categoryLabel: 'Compliance', description: 'IEP/504/ELL support suggestions' },
     
