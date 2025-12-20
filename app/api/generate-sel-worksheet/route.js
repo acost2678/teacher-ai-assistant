@@ -1,145 +1,81 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const anthropic = new Anthropic();
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 export async function POST(request) {
   try {
     const {
       gradeLevel,
-      caselCompetency,
-      subCompetency,
+      selCompetency,
+      topic,
       worksheetType,
-      numberOfWorksheets,
-      theme,
-      includeAnswerKey,
-      includeParentVersion,
+      includeVisuals,
+      quantity,
     } = await request.json();
 
-    if (!gradeLevel || !caselCompetency) {
+    if (!gradeLevel || !selCompetency) {
       return Response.json(
         { error: "Grade level and CASEL competency are required" },
         { status: 400 }
       );
     }
 
-    const competencyDetails = {
-      "self-awareness": {
-        name: "Self-Awareness",
-        description: "The ability to understand one's own emotions, thoughts, and values and how they influence behavior across contexts",
-        subCompetencies: {
-          "identifying-emotions": "Identifying Emotions - Recognizing and labeling one's feelings",
-          "accurate-self-perception": "Accurate Self-Perception - Understanding personal strengths and limitations",
-          "recognizing-strengths": "Recognizing Strengths - Identifying personal talents and abilities",
-          "self-confidence": "Self-Confidence - Believing in oneself and abilities",
-          "self-efficacy": "Self-Efficacy - Believing one can achieve goals through effort",
-          "growth-mindset": "Growth Mindset - Understanding abilities can be developed",
-        }
-      },
-      "self-management": {
-        name: "Self-Management",
-        description: "The ability to manage one's emotions, thoughts, and behaviors effectively in different situations",
-        subCompetencies: {
-          "impulse-control": "Impulse Control - Stopping and thinking before acting",
-          "stress-management": "Stress Management - Coping with stress in healthy ways",
-          "self-discipline": "Self-Discipline - Staying focused and following through",
-          "self-motivation": "Self-Motivation - Finding internal drive to achieve",
-          "goal-setting": "Goal-Setting - Setting and working toward personal goals",
-          "organizational-skills": "Organizational Skills - Managing time and materials",
-        }
-      },
-      "social-awareness": {
-        name: "Social Awareness",
-        description: "The ability to understand the perspectives of and empathize with others",
-        subCompetencies: {
-          "perspective-taking": "Perspective-Taking - Seeing situations from others' viewpoints",
-          "empathy": "Empathy - Understanding and sharing others' feelings",
-          "appreciating-diversity": "Appreciating Diversity - Valuing differences in others",
-          "respect-for-others": "Respect for Others - Treating everyone with dignity",
-          "gratitude": "Gratitude - Recognizing and appreciating what we have",
-          "identifying-resources": "Identifying Resources - Knowing where to get help",
-        }
-      },
-      "relationship-skills": {
-        name: "Relationship Skills",
-        description: "The ability to establish and maintain healthy and supportive relationships",
-        subCompetencies: {
-          "communication": "Communication - Expressing thoughts and listening effectively",
-          "social-engagement": "Social Engagement - Participating positively with others",
-          "relationship-building": "Relationship Building - Making and keeping friends",
-          "teamwork": "Teamwork - Working cooperatively with others",
-          "conflict-resolution": "Conflict Resolution - Solving disagreements peacefully",
-          "seeking-help": "Seeking/Offering Help - Asking for and giving support",
-        }
-      },
-      "responsible-decision-making": {
-        name: "Responsible Decision-Making",
-        description: "The ability to make caring and constructive choices about personal behavior and social interactions",
-        subCompetencies: {
-          "identifying-problems": "Identifying Problems - Recognizing when there's a problem",
-          "analyzing-situations": "Analyzing Situations - Thinking through options",
-          "solving-problems": "Solving Problems - Finding solutions that work",
-          "evaluating-consequences": "Evaluating Consequences - Thinking about outcomes",
-          "reflecting": "Reflecting - Learning from experiences",
-          "ethical-responsibility": "Ethical Responsibility - Making choices that help others",
-        }
-      }
+    const competencyDescriptions = {
+      "Self-Awareness": "The ability to understand one's own emotions, thoughts, and values and how they influence behavior across contexts",
+      "Self-Management": "The ability to manage one's emotions, thoughts, and behaviors effectively in different situations",
+      "Social Awareness": "The ability to understand the perspectives of and empathize with others",
+      "Relationship Skills": "The ability to establish and maintain healthy and supportive relationships",
+      "Responsible Decision-Making": "The ability to make caring and constructive choices about personal behavior and social interactions",
     };
 
-    const worksheetTypes = {
-      "reflection": "Reflection Worksheet - Writing prompts and journaling",
-      "scenarios": "Scenario-Based - Read situations and respond",
-      "drawing": "Drawing/Creative - Express through art",
-      "matching": "Matching Activity - Connect concepts",
-      "sorting": "Sorting Activity - Categorize examples",
-      "comic-strip": "Comic Strip - Create a story showing the skill",
-      "self-assessment": "Self-Assessment - Rate and reflect on skills",
-      "goal-setting": "Goal-Setting - Plan for improvement",
-      "role-play-cards": "Role-Play Cards - Scenarios to act out",
-      "mixed": "Mixed Activities - Variety of formats",
+    const worksheetTypeDescriptions = {
+      "Reflection": "Reflection Worksheet - Writing prompts and journaling for self-discovery",
+      "Coping Skills": "Coping Skills Worksheet - Strategies for managing difficult emotions",
+      "Goal Setting": "Goal Setting Worksheet - Planning for personal growth and improvement",
+      "Feelings/Emotions": "Feelings Worksheet - Identifying and understanding emotions",
+      "Problem-Solving": "Problem-Solving Worksheet - Steps for working through challenges",
+      "Gratitude": "Gratitude Worksheet - Practicing thankfulness and appreciation",
+      "Self-Portrait/Identity": "Identity Worksheet - Exploring who I am and my strengths",
+      "Scenario Analysis": "Scenario Analysis - Reading situations and choosing best responses",
     };
-
-    const competencyInfo = competencyDetails[caselCompetency];
-    const subCompetencyInfo = subCompetency && subCompetency !== "all" 
-      ? competencyInfo.subCompetencies[subCompetency] 
-      : "All sub-competencies";
 
     const prompt = `You are an expert in Social-Emotional Learning curriculum design, specializing in the CASEL framework. Create engaging, developmentally appropriate worksheets that help students develop SEL skills.
 
 **WORKSHEET DETAILS:**
 - Grade Level: ${gradeLevel}
-- CASEL Competency: ${competencyInfo.name}
-- Competency Description: ${competencyInfo.description}
-- Sub-Competency Focus: ${subCompetencyInfo}
-- Worksheet Type: ${worksheetTypes[worksheetType] || worksheetTypes["mixed"]}
-- Number of Worksheets: ${numberOfWorksheets || 1}
-${theme ? `- Theme/Topic: ${theme}` : ""}
-${includeAnswerKey ? "- Include answer key/teacher guide" : ""}
-${includeParentVersion ? "- Include parent/home version" : ""}
+- CASEL Competency: ${selCompetency}
+- Competency Description: ${competencyDescriptions[selCompetency] || selCompetency}
+- Worksheet Type: ${worksheetTypeDescriptions[worksheetType] || worksheetType}
+${topic ? `- Specific Topic: ${topic}` : ''}
+- Number of Worksheets: ${quantity}
+${includeVisuals ? '- Include visual elements (drawing boxes, emoji scales, graphic organizers)' : ''}
 
-**CREATE ${numberOfWorksheets || 1} SEL WORKSHEET(S):**
+**CREATE ${quantity} SEL WORKSHEET(S):**
 
 ---
 
-# 📝 SEL Worksheet: ${competencyInfo.name}
+# 📝 SEL Worksheet: ${selCompetency}
 
-**CASEL Competency:** ${competencyInfo.name}
-**Sub-Competency:** ${subCompetency && subCompetency !== "all" ? subCompetencyInfo.split(" - ")[0] : "Multiple"}
+**CASEL Competency:** ${selCompetency}
 **Grade Level:** ${gradeLevel}
-**Worksheet Type:** ${worksheetType || "Mixed"}
+**Type:** ${worksheetType}
+${topic ? `**Topic:** ${topic}` : ''}
 
 ---
 
 ## 🎯 Learning Objectives
 
 By completing this worksheet, students will:
-- [Specific, measurable SEL objective 1]
-- [Specific, measurable SEL objective 2]
-- [Specific, measurable SEL objective 3]
+- Develop ${selCompetency.toLowerCase()} skills
+- [Specific, measurable SEL objective related to ${worksheetType}]
+- [Another objective related to ${topic || selCompetency}]
 
 ---
 
-${Array.from({length: parseInt(numberOfWorksheets) || 1}, (_, i) => `
-## Worksheet ${(numberOfWorksheets || 1) > 1 ? (i + 1) + ': ' : ''}[Creative Worksheet Title]
+${Array.from({length: parseInt(quantity) || 1}, (_, i) => `
+## ${parseInt(quantity) > 1 ? `Worksheet ${i + 1}: ` : ''}[Creative Worksheet Title Related to ${topic || selCompetency}]
 
 ### 📋 Student Worksheet
 
@@ -147,193 +83,375 @@ ${Array.from({length: parseInt(numberOfWorksheets) || 1}, (_, i) => `
 
 ---
 
-**${competencyInfo.name}: ${subCompetency && subCompetency !== "all" ? subCompetencyInfo.split(" - ")[0] : "Skills Practice"}**
+${worksheetType === 'Reflection' ? `
+### ✏️ Reflection: ${topic || selCompetency}
 
-[Create age-appropriate content based on worksheet type. Include:]
+**Think about ${topic || selCompetency.toLowerCase()}...**
 
-${worksheetType === "reflection" || worksheetType === "mixed" ? `
-#### ✏️ Reflection Questions
+**1. What does ${topic || selCompetency.toLowerCase()} mean to you?**
+_________________________________________________________________
+_________________________________________________________________
 
-1. [Thought-provoking question about the sub-competency]
-   _________________________________________________________________
-   _________________________________________________________________
+**2. Think of a time when you showed ${topic || selCompetency.toLowerCase()}. What happened?**
+_________________________________________________________________
+_________________________________________________________________
+_________________________________________________________________
 
-2. [Question connecting to personal experience]
-   _________________________________________________________________
-   _________________________________________________________________
+**3. How did it make you feel?**
+_________________________________________________________________
 
-3. [Question about applying the skill]
-   _________________________________________________________________
-   _________________________________________________________________
-` : ""}
+**4. What can you do to practice ${topic || selCompetency.toLowerCase()} this week?**
+_________________________________________________________________
+_________________________________________________________________
 
-${worksheetType === "scenarios" || worksheetType === "mixed" ? `
-#### 📖 Scenario Practice
-
-**Read each situation and answer the questions:**
-
-**Scenario A:**
-[Age-appropriate scenario related to ${subCompetencyInfo || competencyInfo.name}]
-
-- What is happening in this situation?
-  _________________________________________________________________
-
-- How might the person feel?
-  _________________________________________________________________
-
-- What could they do? (List 2 options)
-  1. _______________________________________________________________
-  2. _______________________________________________________________
-
-- Which option would you choose? Why?
-  _________________________________________________________________
-` : ""}
-
-${worksheetType === "drawing" || worksheetType === "mixed" ? `
-#### 🎨 Express Yourself
-
-**Draw or write about a time when you used ${subCompetency ? subCompetencyInfo.split(" - ")[0] : competencyInfo.name}:**
-
-[Large box for drawing/writing]
+${includeVisuals ? `
+**5. Draw a picture of yourself using ${topic || selCompetency.toLowerCase()}:**
 ┌────────────────────────────────────────────────────────────────┐
 │                                                                │
 │                                                                │
 │                                                                │
 │                                                                │
 │                                                                │
+│                                                                │
 └────────────────────────────────────────────────────────────────┘
+` : ''}
 
-**What happened?** ________________________________________________
-**How did it make you feel?** _____________________________________
-` : ""}
-
-${worksheetType === "matching" || worksheetType === "sorting" ? `
-#### 🔗 Matching/Sorting Activity
-
-**Match each situation to the best response:**
-
-| Situation | | Response |
-|-----------|--|----------|
-| 1. [Situation] | ___ | A. [Response option] |
-| 2. [Situation] | ___ | B. [Response option] |
-| 3. [Situation] | ___ | C. [Response option] |
-| 4. [Situation] | ___ | D. [Response option] |
-` : ""}
-
-${worksheetType === "self-assessment" ? `
-#### 📊 Self-Assessment
-
-**Rate yourself on these ${competencyInfo.name} skills:**
-
-| Skill | Not Yet (1) | Sometimes (2) | Usually (3) | Always (4) |
-|-------|-------------|---------------|-------------|------------|
-| [Skill 1 related to sub-competency] | ○ | ○ | ○ | ○ |
-| [Skill 2 related to sub-competency] | ○ | ○ | ○ | ○ |
-| [Skill 3 related to sub-competency] | ○ | ○ | ○ | ○ |
-| [Skill 4 related to sub-competency] | ○ | ○ | ○ | ○ |
-
-**My strongest skill is:** ________________________________________
-**I want to improve:** ____________________________________________
-**One thing I can do this week:** _________________________________
-` : ""}
-
-${worksheetType === "goal-setting" ? `
-#### 🎯 Goal-Setting
-
-**My ${competencyInfo.name} Goal**
-
-**The skill I want to work on:** __________________________________
-
-**Why this is important to me:** 
+**My Reflection:** Today I learned that ${topic || selCompetency.toLowerCase()} is important because...
 _________________________________________________________________
+` : ''}
 
-**My SMART Goal:**
-- **S**pecific - What exactly will I do? ___________________________
-- **M**easurable - How will I know I did it? _______________________
-- **A**chievable - Is this possible for me? ________________________
-- **R**elevant - Why does this matter? _____________________________
-- **T**ime-bound - When will I do this by? _________________________
+${worksheetType === 'Coping Skills' ? `
+### 🧘 Coping Skills: ${topic || 'Managing Big Feelings'}
 
-**Steps to reach my goal:**
+**When I feel stressed or upset, I can use these coping strategies:**
+
+${includeVisuals ? `
+**How am I feeling right now?** (Circle one)
+
+😊 Happy    😐 Okay    😟 Worried    😢 Sad    😠 Angry    😰 Stressed
+` : ''}
+
+**My Coping Toolbox:**
+
+**1. BREATHE** 🌬️
+Take 5 deep breaths. Breathe in slowly... breathe out slowly...
+How do you feel after? _____________________________________________
+
+**2. MOVE** 🏃
+Sometimes our bodies need to move! List 3 ways you can move your body:
 1. _______________________________________________________________
 2. _______________________________________________________________
 3. _______________________________________________________________
 
-**Who can help me?** ______________________________________________
-` : ""}
+**3. TALK** 💬
+Who can you talk to when you're upset?
+- At school: ______________________________________________________
+- At home: _______________________________________________________
 
-${worksheetType === "comic-strip" ? `
-#### 📚 Comic Strip
+**4. THINK** 🧠
+Change negative thoughts to positive ones!
+- Instead of "I can't do this," I can say: ___________________________
+- Instead of "This is too hard," I can say: __________________________
 
-**Create a comic showing someone using ${subCompetency ? subCompetencyInfo.split(" - ")[0] : competencyInfo.name}:**
+**5. RELAX** 😌
+What helps you feel calm? (Check all that apply)
+□ Listening to music    □ Drawing    □ Reading
+□ Being alone           □ Being with others    □ Going outside
+□ Other: _____________________
 
-| Panel 1: The Problem | Panel 2: The Feeling |
-|---------------------|---------------------|
-| [Draw here] | [Draw here] |
-| | |
-| | |
+**My Go-To Coping Strategy:** When I feel ${topic || 'upset'}, I will try...
+_________________________________________________________________
+` : ''}
 
-| Panel 3: Using the Skill | Panel 4: The Outcome |
-|-------------------------|---------------------|
-| [Draw here] | [Draw here] |
-| | |
-| | |
+${worksheetType === 'Goal Setting' ? `
+### 🎯 Goal Setting: ${topic || 'My Personal Goal'}
 
-**What skill did the character use?** ____________________________
-` : ""}
+**What is a goal?** A goal is something you want to achieve or get better at!
+
+**My ${selCompetency} Goal:**
+
+**I want to get better at:** _______________________________________
+
+**Why is this important to me?**
+_________________________________________________________________
+
+**My SMART Goal:**
+
+🎯 **S**pecific - What exactly will I do?
+_________________________________________________________________
+
+📏 **M**easurable - How will I know I did it?
+_________________________________________________________________
+
+✅ **A**chievable - Can I really do this?
+□ Yes, I can do this!    □ I might need some help
+
+🎪 **R**elevant - Why does this matter to me?
+_________________________________________________________________
+
+⏰ **T**ime - When will I do this by?
+_________________________________________________________________
+
+**My Action Steps:**
+1. First, I will _________________________________________________
+2. Then, I will _________________________________________________
+3. Finally, I will _______________________________________________
+
+**Who can help me reach my goal?** ________________________________
+
+${includeVisuals ? `
+**Draw yourself achieving your goal:**
+┌────────────────────────────────────────────────────────────────┐
+│                                                                │
+│                                                                │
+│                                                                │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+` : ''}
+
+**I will check my progress on:** __________________________________
+` : ''}
+
+${worksheetType === 'Feelings/Emotions' ? `
+### 💭 Feelings & Emotions: ${topic || 'Understanding My Feelings'}
+
+**All feelings are okay! Let's learn about our emotions.**
+
+${includeVisuals ? `
+**Feelings Faces:** Draw how each feeling looks on your face!
+
+| Happy | Sad | Angry | Scared | Excited |
+|-------|-----|-------|--------|---------|
+|  😊   |  😢  |  😠   |  😨    |   🤩    |
+| [draw]|[draw]|[draw] | [draw] | [draw]  |
+` : ''}
+
+**1. Right now, I feel:** _________________________________________
+
+**2. I feel this way because:** ___________________________________
+
+**3. Where do I feel this emotion in my body?** (Circle)
+Head    Chest    Stomach    Hands    All over    Other: _______
+
+**4. Match the feeling to what might cause it:**
+
+| Feeling | What might cause it |
+|---------|---------------------|
+| Happy   | ___________________ |
+| Sad     | ___________________ |
+| Angry   | ___________________ |
+| Worried | ___________________ |
+| Proud   | ___________________ |
+
+**5. When I feel a BIG emotion, I can:**
+_________________________________________________________________
+
+**6. It's okay to feel my feelings because:**
+_________________________________________________________________
+
+**Remember:** There are no "bad" feelings. All feelings give us information!
+` : ''}
+
+${worksheetType === 'Problem-Solving' ? `
+### 🔧 Problem-Solving: ${topic || 'Working Through Challenges'}
+
+**When we have a problem, we can use these steps to solve it!**
+
+**The Problem-Solving Steps:**
+
+**Step 1: STOP** 🛑
+What is the problem?
+_________________________________________________________________
+
+**Step 2: THINK** 🧠
+How am I feeling about this problem?
+_________________________________________________________________
+
+**Step 3: BRAINSTORM** 💡
+What are some possible solutions? (List at least 3)
+1. _______________________________________________________________
+2. _______________________________________________________________
+3. _______________________________________________________________
+
+**Step 4: EVALUATE** ⚖️
+Look at your solutions. For each one, ask:
+- Is it safe? - Is it fair? - How will everyone feel?
+
+Best solution: ___________________________________________________
+
+**Step 5: TRY IT** ✅
+What happened when you tried your solution?
+_________________________________________________________________
+
+**Step 6: REFLECT** 🪞
+Did it work? What would you do differently next time?
+_________________________________________________________________
+
+${includeVisuals ? `
+**Problem-Solving Flowchart:**
+Draw your own problem-solving journey!
+┌────────────────────────────────────────────────────────────────┐
+│                                                                │
+│  PROBLEM → FEELINGS → IDEAS → CHOICE → TRY → RESULT           │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+` : ''}
+` : ''}
+
+${worksheetType === 'Gratitude' ? `
+### 🙏 Gratitude: ${topic || 'Being Thankful'}
+
+**What is gratitude?** Gratitude means noticing and being thankful for the good things in our lives!
+
+**Today I am grateful for...**
+
+**1. A person I'm thankful for:** _________________________________
+Why? _____________________________________________________________
+
+**2. Something that made me smile today:** ________________________
+_________________________________________________________________
+
+**3. Something I have that I'm grateful for:** ____________________
+_________________________________________________________________
+
+**4. A place I love:** ___________________________________________
+Why? _____________________________________________________________
+
+**5. Something about myself I appreciate:** _______________________
+_________________________________________________________________
+
+${includeVisuals ? `
+**Gratitude Jar:** Draw or write things you're grateful for in the jar!
+┌─────────────────────────────────────┐
+│             ┌─────┐                 │
+│             │     │                 │
+│         ┌───┴─────┴───┐             │
+│         │             │             │
+│         │             │             │
+│         │             │             │
+│         │             │             │
+│         └─────────────┘             │
+└─────────────────────────────────────┘
+` : ''}
+
+**Gratitude Challenge:** This week, I will tell _________________ 
+that I am thankful for them because _______________________________
+
+**How does being grateful make you feel?**
+_________________________________________________________________
+` : ''}
+
+${worksheetType === 'Self-Portrait/Identity' ? `
+### 🌟 All About Me: ${topic || 'My Identity'}
+
+**Let's explore who you are!**
+
+${includeVisuals ? `
+**My Self-Portrait:**
+┌────────────────────────────────────────────────────────────────┐
+│                                                                │
+│                        [Draw yourself!]                        │
+│                                                                │
+│                                                                │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+` : ''}
+
+**My name is:** ___________________________________________________
+
+**Three words that describe me:**
+1. _______________ 2. _______________ 3. _______________
+
+**My Strengths (things I'm good at):**
+⭐ ________________________________________________________________
+⭐ ________________________________________________________________
+⭐ ________________________________________________________________
+
+**Things I like about myself:**
+💚 ________________________________________________________________
+💚 ________________________________________________________________
+
+**Things I'm still learning:**
+📚 ________________________________________________________________
+📚 ________________________________________________________________
+
+**My favorite things:**
+- Color: _________________ - Food: _________________
+- Activity: _______________ - Subject: ______________
+
+**People who are important to me:**
+_________________________________________________________________
+
+**When I grow up, I want to:** ____________________________________
+
+**I am unique because:** __________________________________________
+_________________________________________________________________
+` : ''}
+
+${worksheetType === 'Scenario Analysis' ? `
+### 📖 Scenario Analysis: ${topic || selCompetency}
+
+**Read each scenario and answer the questions.**
+
+**Scenario 1:**
+[Age-appropriate scenario about ${topic || selCompetency.toLowerCase()} for ${gradeLevel}]
+
+- What is happening in this situation?
+  _________________________________________________________________
+
+- How might the people involved feel?
+  _________________________________________________________________
+
+- What would be a good choice? Why?
+  _________________________________________________________________
+  _________________________________________________________________
+
+---
+
+**Scenario 2:**
+[Another scenario about ${topic || selCompetency.toLowerCase()}]
+
+- What is the problem?
+  _________________________________________________________________
+
+- What are two different choices the person could make?
+  1. _______________________________________________________________
+  2. _______________________________________________________________
+
+- What might happen with each choice?
+  1. _______________________________________________________________
+  2. _______________________________________________________________
+
+- What would YOU do? Why?
+  _________________________________________________________________
+
+---
+
+**Scenario 3:**
+[A third scenario involving ${selCompetency}]
+
+- Describe what's happening:
+  _________________________________________________________________
+
+- How does this connect to ${selCompetency.toLowerCase()}?
+  _________________________________________________________________
+
+- What advice would you give?
+  _________________________________________________________________
+` : ''}
 
 ---
 
 ### 💭 Final Reflection
 
 **One thing I learned today:** ____________________________________
+_________________________________________________________________
 
 **I will use this skill when:** ___________________________________
+_________________________________________________________________
 
 ---
 `).join('\n')}
-
-${includeAnswerKey ? `
-## 📋 Teacher Guide / Answer Key
-
-### Facilitation Tips
-- [How to introduce the worksheet]
-- [Key discussion points]
-- [What to look for in responses]
-
-### Sample Responses
-- [Example of proficient response for key questions]
-- [What growth looks like]
-
-### Extension Ideas
-- [Follow-up activity]
-- [Class discussion prompt]
-` : ""}
-
-${includeParentVersion ? `
-## 🏠 Parent/Home Version
-
-**Dear Family,**
-
-Your child is learning about **${competencyInfo.name}**, specifically **${subCompetency ? subCompetencyInfo.split(" - ")[0] : "key skills"}**.
-
-**What is ${competencyInfo.name}?**
-${competencyInfo.description}
-
-**Home Activity:**
-[Simple activity families can do together to practice this skill]
-
-**Conversation Starters:**
-- [Question to ask your child]
-- [Question to ask your child]
-
-**Ways to Support at Home:**
-- [Tip 1]
-- [Tip 2]
-- [Tip 3]
-
-Thank you for supporting your child's social-emotional growth!
-` : ""}
 
 ---
 
@@ -341,9 +459,8 @@ Thank you for supporting your child's social-emotional growth!
 - All content must be developmentally appropriate for ${gradeLevel}
 - Use inclusive, affirming language
 - Avoid scenarios that could trigger trauma
-- Include visual supports for younger students
 - Make activities engaging and meaningful
-- Connect skills to real-life situations
+- Connect skills to real-life situations students face
 - Provide adequate space for student responses`;
 
     const message = await anthropic.messages.create({

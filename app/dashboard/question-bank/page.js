@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { supabase } from '../../../lib/supabase'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { supabase } from '../../../lib/supabase'
 
 export default function QuestionBankPage() {
   const [user, setUser] = useState(null)
@@ -12,51 +12,108 @@ export default function QuestionBankPage() {
   
   const [gradeLevel, setGradeLevel] = useState('3rd Grade')
   const [subject, setSubject] = useState('English Language Arts')
-  const [unit, setUnit] = useState('')
-  const [topics, setTopics] = useState('')
-  const [questionsPerTopic, setQuestionsPerTopic] = useState('5')
-  const [questionTypes, setQuestionTypes] = useState(['multiple-choice', 'short-answer', 'true-false'])
-  const [difficulty, setDifficulty] = useState('mixed')
-  const [includeAnswers, setIncludeAnswers] = useState(true)
-  const [includeStandards, setIncludeStandards] = useState(false)
-  const [standardsFramework, setStandardsFramework] = useState('common-core')
+  const [topic, setTopic] = useState('')
+  const [standards, setStandards] = useState('')
+  const [dokLevels, setDokLevels] = useState(['dok2'])
+  const [questionTypes, setQuestionTypes] = useState(['multiple-choice'])
+  const [numQuestions, setNumQuestions] = useState('20')
+  const [includeAnswerKey, setIncludeAnswerKey] = useState(true)
+  const [includeDistractorRationale, setIncludeDistractorRationale] = useState(false)
   
   const [generatedBank, setGeneratedBank] = useState('')
   const [copied, setCopied] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [showDemo, setShowDemo] = useState(false)
+  const outputRef = useRef(null)
   const router = useRouter()
+
+  const dokOptions = [
+    { id: 'dok1', label: 'DOK 1 - Recall' },
+    { id: 'dok2', label: 'DOK 2 - Skill/Concept' },
+    { id: 'dok3', label: 'DOK 3 - Strategic Thinking' },
+    { id: 'dok4', label: 'DOK 4 - Extended Thinking' },
+  ]
 
   const questionTypeOptions = [
     { id: 'multiple-choice', label: 'Multiple Choice' },
     { id: 'true-false', label: 'True/False' },
     { id: 'short-answer', label: 'Short Answer' },
+    { id: 'extended-response', label: 'Extended Response' },
     { id: 'fill-blank', label: 'Fill in the Blank' },
     { id: 'matching', label: 'Matching' },
-    { id: 'extended-response', label: 'Extended Response' },
   ]
 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) { setUser(session.user); setLoading(false) }
-      else { router.push('/auth/login') }
+      if (session?.user) {
+        setUser(session.user)
+        setLoading(false)
+      } else {
+        router.push('/auth/login')
+      }
     }
     checkSession()
   }, [router])
 
+  const handleShowDemo = () => {
+    setGradeLevel('5th Grade')
+    setSubject('Mathematics')
+    setTopic('Multiplying and Dividing Fractions')
+    setStandards('5.NF.B.4 - Apply and extend previous understandings of multiplication to multiply a fraction by a whole number. 5.NF.B.7 - Apply and extend previous understandings of division to divide unit fractions by whole numbers.')
+    setDokLevels(['dok1', 'dok2', 'dok3'])
+    setQuestionTypes(['multiple-choice', 'short-answer', 'extended-response'])
+    setNumQuestions('25')
+    setIncludeAnswerKey(true)
+    setIncludeDistractorRationale(true)
+    setShowDemo(true)
+    setGeneratedBank('')
+  }
+
+  const handleResetDemo = () => {
+    setGradeLevel('3rd Grade')
+    setSubject('English Language Arts')
+    setTopic('')
+    setStandards('')
+    setDokLevels(['dok2'])
+    setQuestionTypes(['multiple-choice'])
+    setNumQuestions('20')
+    setIncludeAnswerKey(true)
+    setIncludeDistractorRationale(false)
+    setShowDemo(false)
+    setGeneratedBank('')
+  }
+
+  const scrollToOutput = () => {
+    outputRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const handleDokToggle = (dokId) => {
+    if (dokLevels.includes(dokId)) {
+      if (dokLevels.length > 1) {
+        setDokLevels(dokLevels.filter(d => d !== dokId))
+      }
+    } else {
+      setDokLevels([...dokLevels, dokId])
+    }
+  }
+
   const handleQuestionTypeToggle = (typeId) => {
     if (questionTypes.includes(typeId)) {
-      setQuestionTypes(questionTypes.filter(t => t !== typeId))
+      if (questionTypes.length > 1) {
+        setQuestionTypes(questionTypes.filter(t => t !== typeId))
+      }
     } else {
       setQuestionTypes([...questionTypes, typeId])
     }
   }
 
   const handleGenerate = async () => {
-    if (!unit) {
-      alert('Please enter a unit name')
+    if (!topic) {
+      alert('Please enter a topic')
       return
     }
+    
     setGenerating(true)
     setGeneratedBank('')
     setSaved(false)
@@ -66,14 +123,22 @@ export default function QuestionBankPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          gradeLevel, subject, unit, topics, questionsPerTopic,
-          questionTypes, difficulty, includeAnswers, includeStandards, standardsFramework,
+          gradeLevel, subject, topic, standards, dokLevels,
+          questionTypes, numQuestions, includeAnswerKey, includeDistractorRationale,
         }),
       })
+      
       const data = await response.json()
-      if (data.error) { alert('Error: ' + data.error) }
-      else { setGeneratedBank(data.questionBank); await handleSave(data.questionBank) }
-    } catch (error) { alert('Error generating question bank. Please try again.') }
+      if (data.error) {
+        alert('Error: ' + data.error)
+      } else {
+        setGeneratedBank(data.questionBank)
+        await handleSave(data.questionBank)
+      }
+    } catch (error) {
+      alert('Error generating question bank. Please try again.')
+    }
+    
     setGenerating(false)
   }
 
@@ -85,15 +150,17 @@ export default function QuestionBankPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.id,
-          title: `Question Bank: ${unit}`,
+          title: `Question Bank: ${topic}`,
           toolType: 'question-bank',
           toolName: 'Question Bank',
           content,
-          metadata: { gradeLevel, subject, unit, questionsPerTopic, questionTypes },
+          metadata: { gradeLevel, subject, topic, numQuestions, dokLevels },
         }),
       })
       setSaved(true)
-    } catch (error) { console.error('Error saving:', error) }
+    } catch (error) {
+      console.error('Error saving:', error)
+    }
   }
 
   const handleExportDocx = async () => {
@@ -103,182 +170,204 @@ export default function QuestionBankPage() {
       const response = await fetch('/api/export-docx', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: `Question Bank - ${unit}`, content: generatedBank, toolName: 'Question Bank' }),
+        body: JSON.stringify({
+          title: `Question Bank - ${topic}`,
+          content: generatedBank,
+          toolName: 'Question Bank'
+        }),
       })
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
-        a.href = url; a.download = `QuestionBank_${unit.replace(/\s+/g, '_')}.docx`
-        document.body.appendChild(a); a.click(); document.body.removeChild(a)
+        a.href = url
+        a.download = `Question_Bank_${topic.replace(/\s+/g, '_')}.docx`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
         window.URL.revokeObjectURL(url)
       }
-    } catch (error) { alert('Failed to export') }
+    } catch (error) {
+      alert('Failed to export')
+    }
     setExporting(false)
   }
 
-  const handleCopy = () => { navigator.clipboard.writeText(generatedBank); setCopied(true); setTimeout(() => setCopied(false), 2000) }
+  const handleCopy = () => {
+    navigator.clipboard.writeText(generatedBank)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-100"><p className="text-gray-600">Loading...</p></div>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-md p-4">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/dashboard')} className="text-gray-600 hover:text-gray-800">← Back</button>
-            <h1 className="text-xl font-bold text-gray-800">Question Bank Builder</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-2 text-sm">
+            <button onClick={() => router.push('/dashboard')} className="text-gray-500 hover:text-purple-600 transition-colors">Tools</button>
+            <span className="text-gray-300">›</span>
+            <span className="text-gray-800 font-medium">Question Bank</span>
           </div>
         </div>
-      </nav>
+      </header>
 
-      <main className="max-w-6xl mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Input Form */}
-          <div className="bg-white p-6 rounded-lg shadow overflow-y-auto max-h-[85vh]">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">Question Bank Details</h2>
-
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-gray-700 mb-2">Grade Level *</label>
-                <select value={gradeLevel} onChange={(e) => setGradeLevel(e.target.value)}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-800">
-                  {['Pre-K', 'Kindergarten', '1st Grade', '2nd Grade', '3rd Grade', '4th Grade', '5th Grade', 
-                    '6th Grade', '7th Grade', '8th Grade', '9th Grade', '10th Grade', '11th Grade', '12th Grade'].map(g => 
-                    <option key={g} value={g}>{g}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-2">Subject *</label>
-                <select value={subject} onChange={(e) => setSubject(e.target.value)}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-800">
-                  {['English Language Arts', 'Mathematics', 'Science', 'Social Studies', 'Art', 'Music', 
-                    'Physical Education', 'Health', 'Foreign Language', 'Computer Science'].map(s => 
-                    <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
+      <main className="max-w-4xl mx-auto px-6 py-8">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-800">Question Bank</h1>
+              <p className="text-gray-500">Build reusable questions organized by standard and DOK level.</p>
             </div>
-
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Unit Name *</label>
-              <input type="text" value={unit} onChange={(e) => setUnit(e.target.value)}
-                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-800"
-                placeholder="e.g., Fractions, Colonial America, Ecosystems" />
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Topics/Concepts to Cover (optional)</label>
-              <textarea value={topics} onChange={(e) => setTopics(e.target.value)}
-                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-800 h-20"
-                placeholder="List specific topics, separated by commas. e.g., Adding fractions, Subtracting fractions, Mixed numbers, Word problems" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-gray-700 mb-2">Questions per Topic</label>
-                <select value={questionsPerTopic} onChange={(e) => setQuestionsPerTopic(e.target.value)}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-800">
-                  <option value="3">3 questions</option>
-                  <option value="5">5 questions</option>
-                  <option value="8">8 questions</option>
-                  <option value="10">10 questions</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-2">Difficulty</label>
-                <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-800">
-                  <option value="easy">Easy (mostly recall)</option>
-                  <option value="medium">Medium (application)</option>
-                  <option value="hard">Hard (analysis/synthesis)</option>
-                  <option value="mixed">Mixed (variety)</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Question Types */}
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Question Types</label>
-              <div className="grid grid-cols-2 gap-2">
-                {questionTypeOptions.map(qt => (
-                  <label key={qt.id} className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={questionTypes.includes(qt.id)}
-                      onChange={() => handleQuestionTypeToggle(qt.id)} className="w-4 h-4 text-amber-600 rounded" />
-                    <span className="text-sm text-gray-700">{qt.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Standards */}
-            <div className="mb-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
-              <label className="flex items-center gap-3 cursor-pointer mb-2">
-                <input type="checkbox" checked={includeStandards}
-                  onChange={(e) => setIncludeStandards(e.target.checked)} className="w-5 h-5 text-amber-600 rounded" />
-                <span className="text-gray-800 font-medium">Include Standards Alignment</span>
-              </label>
-              {includeStandards && (
-                <select value={standardsFramework} onChange={(e) => setStandardsFramework(e.target.value)}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-800 mt-2">
-                  <option value="common-core">Common Core</option>
-                  <option value="ngss">NGSS</option>
-                  <option value="texas-teks">Texas TEKS</option>
-                  <option value="state">State Standards</option>
-                </select>
+            <div className="flex items-center gap-3">
+              {showDemo && (
+                <button onClick={handleResetDemo} className="text-gray-400 hover:text-gray-600 transition-colors" title="Reset">↺</button>
               )}
+              <button onClick={handleShowDemo} className={`text-sm font-medium transition-colors ${showDemo ? 'text-gray-400' : 'text-purple-600 hover:text-purple-700'}`}>
+                See Demo
+              </button>
             </div>
-
-            {/* Answer Key */}
-            <div className="mb-4">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" checked={includeAnswers}
-                  onChange={(e) => setIncludeAnswers(e.target.checked)} className="w-5 h-5 text-amber-600 rounded" />
-                <span className="text-gray-700">Include Answer Key</span>
-              </label>
-            </div>
-
-            <button onClick={handleGenerate} disabled={generating}
-              className="w-full bg-amber-600 text-white p-3 rounded-lg hover:bg-amber-700 disabled:opacity-50">
-              {generating ? 'Generating...' : 'Generate Question Bank'}
-            </button>
-            <p className="text-xs text-gray-500 mt-2 text-center">This may take a moment for larger banks</p>
           </div>
 
-          {/* Output */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-gray-800">Generated Question Bank</h2>
-                {saved && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">✓ Saved</span>}
-              </div>
-              {generatedBank && (
-                <div className="flex gap-2">
-                  <button onClick={handleCopy} className="text-amber-600 hover:text-amber-800 text-sm">
-                    {copied ? '✓ Copied!' : 'Copy'}
-                  </button>
-                  <button onClick={handleExportDocx} disabled={exporting} 
-                    className="text-blue-600 hover:text-blue-800 text-sm disabled:opacity-50">
-                    {exporting ? 'Exporting...' : 'Export .docx'}
-                  </button>
+          {showDemo && (
+            <div className="bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <span className="text-purple-500 text-xl">✨</span>
+                <div className="flex-1">
+                  <h3 className="text-purple-700 font-medium">Demo is ready!</h3>
+                  <p className="text-purple-600 text-sm">We've filled in example inputs. Click Generate to see a sample output.</p>
                 </div>
-              )}
+                <button onClick={scrollToOutput} className="text-purple-600 hover:text-purple-700 text-sm font-medium whitespace-nowrap">
+                  Scroll to view output
+                </button>
+              </div>
             </div>
+          )}
 
-            {generatedBank ? (
-              <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap text-gray-800 text-sm overflow-y-auto max-h-[70vh]">
-                {generatedBank}
+          <div className="grid grid-cols-2 gap-4 mb-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Grade Level: *</label>
+              <select value={gradeLevel} onChange={(e) => setGradeLevel(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 appearance-none cursor-pointer">
+                {['Pre-K', 'Kindergarten', '1st Grade', '2nd Grade', '3rd Grade', '4th Grade', '5th Grade', '6th Grade', '7th Grade', '8th Grade', '9th Grade', '10th Grade', '11th Grade', '12th Grade'].map(g => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Subject: *</label>
+              <select value={subject} onChange={(e) => setSubject(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 appearance-none cursor-pointer">
+                {['English Language Arts', 'Mathematics', 'Science', 'Social Studies', 'Art', 'Music', 'Physical Education', 'Health', 'Foreign Language', 'Computer Science'].map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Topic/Unit: *</label>
+            <input type="text" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g., Fractions, Photosynthesis, Civil War"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 placeholder-gray-400" />
+          </div>
+
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Standards (Recommended):</label>
+            <textarea value={standards} onChange={(e) => setStandards(e.target.value)} placeholder="Paste specific standards to align questions..."
+              rows={3} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 placeholder-gray-400 resize-none" />
+          </div>
+
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-700 mb-2">DOK Levels:</label>
+            <div className="flex flex-wrap gap-2">
+              {dokOptions.map(dok => (
+                <button key={dok.id} onClick={() => handleDokToggle(dok.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dokLevels.includes(dok.id) ? 'bg-purple-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                  {dok.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Question Types:</label>
+            <div className="flex flex-wrap gap-2">
+              {questionTypeOptions.map(qt => (
+                <button key={qt.id} onClick={() => handleQuestionTypeToggle(qt.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${questionTypes.includes(qt.id) ? 'bg-purple-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                  {qt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Number of Questions:</label>
+            <select value={numQuestions} onChange={(e) => setNumQuestions(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 appearance-none cursor-pointer">
+              {['10', '15', '20', '25', '30', '40', '50'].map(n => (
+                <option key={n} value={n}>{n} questions</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-6 space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked={includeAnswerKey} onChange={(e) => setIncludeAnswerKey(e.target.checked)}
+                className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500" />
+              <span className="text-gray-700">Include answer key</span>
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked={includeDistractorRationale} onChange={(e) => setIncludeDistractorRationale(e.target.checked)}
+                className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500" />
+              <div>
+                <span className="text-gray-700">Include distractor rationale</span>
+                <p className="text-sm text-gray-500">Explain why wrong answers are wrong (for teacher reference)</p>
               </div>
-            ) : (
-              <div className="bg-gray-50 p-4 rounded-lg text-gray-400 text-center h-96 flex items-center justify-center">
-                <div>
-                  <p className="mb-2">Your question bank will appear here</p>
-                  <p className="text-xs">Organized questions for building assessments</p>
-                </div>
+            </label>
+          </div>
+
+          <button onClick={handleGenerate} disabled={generating || !topic}
+            className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white font-medium py-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+            {generating ? (<><span className="animate-spin">⏳</span>Generating...</>) : (<><span>✨</span>Generate</>)}
+          </button>
+        </div>
+
+        <div ref={outputRef} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-gray-800">Generated Question Bank</h2>
+              {saved && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">✓ Saved</span>}
+            </div>
+            {generatedBank && (
+              <div className="flex items-center gap-3">
+                <button onClick={handleCopy} className="text-sm text-purple-600 hover:text-purple-700 font-medium">{copied ? '✓ Copied!' : '📋 Copy'}</button>
+                <button onClick={handleExportDocx} disabled={exporting} className="text-sm text-purple-600 hover:text-purple-700 font-medium disabled:text-purple-300">
+                  {exporting ? 'Exporting...' : '📄 Export .docx'}
+                </button>
               </div>
             )}
           </div>
 
+          {generatedBank ? (
+            <div className="bg-gray-50 rounded-xl p-5 min-h-[200px] max-h-[500px] overflow-y-auto">
+              <pre className="whitespace-pre-wrap text-gray-700 text-sm font-sans leading-relaxed">{generatedBank}</pre>
+            </div>
+          ) : (
+            <div className="bg-gray-50 rounded-xl p-5 min-h-[200px] flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-4xl mb-3">🏦</div>
+                <p className="text-gray-400">Your generated question bank will appear here</p>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

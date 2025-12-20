@@ -1,19 +1,20 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const anthropic = new Anthropic();
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 export async function POST(request) {
   try {
     const {
       gradeLevel,
       checkInType,
-      caselCompetency,
-      duration,
+      selCompetency,
       format,
-      numberOfPrompts,
-      theme,
+      duration,
+      includeVisuals,
       includeFollowUp,
-      classContext,
+      quantity,
     } = await request.json();
 
     if (!gradeLevel) {
@@ -24,72 +25,79 @@ export async function POST(request) {
     }
 
     const checkInTypes = {
-      "morning-meeting": "Morning Meeting - Start the day with connection and community",
-      "emotion-check": "Emotion Check-In - Help students identify and express feelings",
-      "closing-circle": "Closing Circle - Reflect on the day and set intentions",
-      "weekly-reflection": "Weekly Reflection - Deeper reflection on growth and goals",
-      "transition": "Transition Check-In - Brief reset between activities",
-      "one-on-one": "One-on-One Check-In - Individual student conversation prompts",
+      "Daily Morning": "Morning Meeting - Start the day with connection and community",
+      "End of Day": "Closing Circle - Reflect on the day and celebrate growth",
+      "After Recess/Break": "Transition Check-In - Reset and refocus after active time",
+      "Before Test/Assessment": "Calming Check-In - Reduce anxiety and build confidence",
+      "Monday Reset": "Weekly Kickoff - Set intentions and goals for the week",
+      "Friday Reflection": "Weekly Reflection - Celebrate wins and reflect on growth",
+      "After Conflict": "Restorative Check-In - Process emotions and rebuild connection",
     };
 
     const caselCompetencies = {
-      "self-awareness": "Self-Awareness: Recognizing emotions, strengths, and areas for growth",
-      "self-management": "Self-Management: Regulating emotions, setting goals, managing stress",
-      "social-awareness": "Social Awareness: Empathy, appreciating diversity, respecting others",
-      "relationship-skills": "Relationship Skills: Communication, teamwork, conflict resolution",
-      "responsible-decision-making": "Responsible Decision-Making: Making ethical, safe choices",
-      "mixed": "Mixed: Blend of all CASEL competencies",
+      "Self-Awareness": "Self-Awareness: Recognizing emotions, strengths, and areas for growth",
+      "Self-Management": "Self-Management: Regulating emotions, setting goals, managing stress",
+      "Social Awareness": "Social Awareness: Empathy, appreciating diversity, respecting others",
+      "Relationship Skills": "Relationship Skills: Communication, teamwork, conflict resolution",
+      "Responsible Decision-Making": "Responsible Decision-Making: Making ethical, safe choices",
+      "Mixed/All Competencies": "Mixed: Blend of all CASEL competencies",
     };
 
     const formats = {
-      "verbal": "Verbal sharing (go-around, partner talk)",
-      "written": "Written response (journal, worksheet)",
-      "movement": "Movement-based (body scan, gesture)",
-      "creative": "Creative expression (drawing, acting)",
-      "digital": "Digital response (poll, emoji selection)",
-      "choice": "Student choice of response method",
+      "Written Response": "Written response (journal, worksheet)",
+      "Rating Scale": "Rating scale (1-5, thumbs up/down)",
+      "Emoji/Visual Selection": "Visual selection (emoji, feelings chart)",
+      "Choice Board": "Choice board (multiple response options)",
+      "Think-Pair-Share": "Think-Pair-Share (reflect, partner talk, group share)",
+      "Journal Prompt": "Journal prompt (deeper written reflection)",
+      "Discussion Circle": "Discussion circle (whole class sharing)",
     };
 
     const prompt = `You are an expert in Social-Emotional Learning (SEL) and child development, trained in the CASEL framework. Create engaging, developmentally appropriate SEL check-ins for classroom use.
 
 **CHECK-IN DETAILS:**
 - Grade Level: ${gradeLevel}
-- Check-In Type: ${checkInTypes[checkInType] || checkInTypes["morning-meeting"]}
-- CASEL Competency Focus: ${caselCompetencies[caselCompetency] || caselCompetencies["mixed"]}
-- Duration: ${duration || "5-10 minutes"}
-- Response Format: ${formats[format] || formats["verbal"]}
-- Number of Prompts: ${numberOfPrompts || 5}
-${theme ? `- Theme/Topic: ${theme}` : ""}
-${classContext ? `- Class Context: ${classContext}` : ""}
+- Check-In Type: ${checkInTypes[checkInType] || checkInType}
+- CASEL Competency Focus: ${caselCompetencies[selCompetency] || selCompetency}
+- Duration: ${duration}
+- Response Format: ${formats[format] || format}
+- Number of Check-Ins: ${quantity}
 
-**CREATE ${numberOfPrompts || 5} SEL CHECK-IN PROMPTS:**
+**CREATE ${quantity} SEL CHECK-IN PROMPTS:**
 
 ---
 
-# 💚 SEL Check-In: ${checkInType === "morning-meeting" ? "Morning Meeting" : checkInType === "emotion-check" ? "Emotion Check" : checkInType === "closing-circle" ? "Closing Circle" : "Check-In"}
+# 💚 SEL Check-Ins: ${checkInType}
 
 **Grade Level:** ${gradeLevel}
-**CASEL Focus:** ${caselCompetency || "Mixed"}
-**Duration:** ${duration || "5-10 minutes"}
-**Format:** ${format || "Verbal"}
+**CASEL Focus:** ${selCompetency}
+**Duration:** ${duration}
+**Format:** ${format}
 
 ---
 
 ## 🎯 Learning Objectives
-- [SEL objective 1 aligned to CASEL competency]
-- [SEL objective 2 aligned to CASEL competency]
+- Students will practice ${selCompetency.toLowerCase()} skills
+- Students will identify and express their emotions appropriately
+- Students will build classroom community through sharing
 
 ---
 
 ## ✨ Check-In Prompts
 
-${Array.from({length: parseInt(numberOfPrompts) || 5}, (_, i) => `
-### Prompt ${i + 1}: [Creative Title]
+${Array.from({length: parseInt(quantity) || 5}, (_, i) => `
+### Check-In ${i + 1}: [Creative Title]
 
 **The Prompt:**
-"[Age-appropriate prompt question or statement for ${gradeLevel}]"
+"[Age-appropriate prompt question for ${gradeLevel}]"
 
-**CASEL Connection:** [Which competency this develops]
+**CASEL Connection:** ${selCompetency}
+
+${includeVisuals ? `**Visual Support:**
+[Describe an emoji scale, feelings chart, or visual that could accompany this prompt]
+- 😊 😐 😢 😤 😰 (or similar visual scale)
+- [Suggestion for anchor chart or visual aid]
+` : ""}
 
 **How to Facilitate:**
 - [Brief facilitation tip]
@@ -98,63 +106,71 @@ ${Array.from({length: parseInt(numberOfPrompts) || 5}, (_, i) => `
 ${includeFollowUp ? `**Follow-Up Questions:**
 - [Deeper question 1]
 - [Deeper question 2]
+- [Question to extend thinking]
 ` : ""}
+
 **Sentence Starters (for students who need support):**
 - "I feel ___ because..."
 - "Today I noticed..."
-- [One more relevant starter]
+- [One more relevant starter for this prompt]
 
 ---
 `).join('\n')}
 
 ## 🌟 Facilitation Tips
 
-**Before Starting:**
-- [Setup tip for creating safe space]
-- [How to model vulnerability appropriately]
+**Creating a Safe Space:**
+- Remind students that all feelings are valid
+- Model vulnerability by sharing your own (appropriate) feelings
+- Always offer a "pass" option - no one is forced to share
 
 **During Check-In:**
-- [Active listening reminder]
-- [How to validate all responses]
-- [What to do if a student shares something concerning]
+- Use active listening (eye contact, nodding, reflecting)
+- Validate all responses without judgment
+- If a student shares something concerning, note it for private follow-up
 
 **Closing:**
-- [How to wrap up meaningfully]
-- [Transition tip]
+- Thank students for sharing
+- Summarize themes you noticed (without calling out individuals)
+- Provide a brief transition activity
 
 ---
 
 ## 📊 What to Notice
 
 **Signs of Growth:**
-- [Positive indicator 1]
-- [Positive indicator 2]
+- Students using feeling words independently
+- Increased willingness to share over time
+- Students showing empathy toward peers
 
 **Signs a Student May Need Support:**
-- [Concern indicator 1]
-- [Concern indicator 2]
-- [When to follow up privately]
+- Consistent negative responses
+- Refusal to participate (beyond normal shyness)
+- Disclosures that suggest stress at home or school
+- Follow up privately with students who seem to be struggling
 
 ---
 
-## 🔄 Variations
+## 🔄 Variations & Modifications
 
-**For Students Who Are Reluctant:**
-- [Modification 1]
-- [Modification 2]
+**For Reluctant Sharers:**
+- Allow written responses instead of verbal
+- Partner sharing before whole group
+- Use thumbs up/down or visual scales
 
-**For Advanced Reflection:**
-- [Extension idea]
+**For Students Ready for More:**
+- Ask them to connect feelings to goals
+- Have them suggest check-in prompts for the class
+- Pair with a journal extension
 
 ---
 
-**GUIDELINES:**
-- All prompts must be developmentally appropriate for ${gradeLevel}
+**IMPORTANT GUIDELINES:**
+- All prompts are developmentally appropriate for ${gradeLevel}
 - Use inclusive, trauma-informed language
 - Avoid prompts that could trigger shame or embarrassment
 - Focus on growth mindset and strengths-based approaches
-- Ensure prompts are culturally responsive
-- Never force sharing - always offer "pass" option`;
+- Ensure prompts are culturally responsive`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
@@ -162,13 +178,13 @@ ${includeFollowUp ? `**Follow-Up Questions:**
       messages: [{ role: "user", content: prompt }],
     });
 
-    const checkIn = message.content[0].text;
+    const checkIns = message.content[0].text;
 
-    return Response.json({ checkIn });
+    return Response.json({ checkIns });
   } catch (error) {
-    console.error("Error generating SEL check-in:", error);
+    console.error("Error generating SEL check-ins:", error);
     return Response.json(
-      { error: "Failed to generate SEL check-in" },
+      { error: "Failed to generate SEL check-ins" },
       { status: 500 }
     );
   }

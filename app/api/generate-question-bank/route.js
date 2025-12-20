@@ -1,144 +1,159 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const anthropic = new Anthropic();
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 export async function POST(request) {
   try {
     const {
       gradeLevel,
       subject,
-      unit,
-      topics,
-      questionsPerTopic,
+      topic,
+      standards,
+      dokLevels,
       questionTypes,
-      difficulty,
-      includeAnswers,
-      includeStandards,
-      standardsFramework,
+      numQuestions,
+      includeAnswerKey,
+      includeDistractorRationale,
     } = await request.json();
 
-    if (!unit || !gradeLevel || !subject) {
+    if (!topic || !gradeLevel || !subject) {
       return Response.json(
-        { error: "Unit, grade level, and subject are required" },
+        { error: "Topic, grade level, and subject are required" },
         { status: 400 }
       );
     }
 
-    const standardsMap = {
-      "common-core": "Common Core State Standards",
-      "ngss": "Next Generation Science Standards",
-      "texas-teks": "Texas TEKS",
-      "state": "State Standards",
+    const dokDescriptions = {
+      'dok1': 'DOK 1 (Recall & Reproduction)',
+      'dok2': 'DOK 2 (Skills & Concepts)',
+      'dok3': 'DOK 3 (Strategic Thinking)',
+      'dok4': 'DOK 4 (Extended Thinking)',
     };
 
     const questionTypeDescriptions = {
-      "multiple-choice": "Multiple choice (4 options)",
-      "true-false": "True/False",
-      "short-answer": "Short answer",
-      "fill-blank": "Fill in the blank",
-      "matching": "Matching",
-      "extended-response": "Extended response",
+      'multiple-choice': 'Multiple Choice (4 options)',
+      'true-false': 'True/False',
+      'short-answer': 'Short Answer',
+      'extended-response': 'Extended Response',
+      'fill-blank': 'Fill in the Blank',
+      'matching': 'Matching',
     };
 
-    let questionTypesPrompt = "";
-    if (questionTypes && questionTypes.length > 0) {
-      const types = questionTypes.map(t => questionTypeDescriptions[t] || t).join(", ");
-      questionTypesPrompt = `Question types to include: ${types}`;
-    }
+    const dokList = dokLevels.map(d => dokDescriptions[d] || d).join(', ');
+    const typesList = questionTypes.map(t => questionTypeDescriptions[t] || t).join(', ');
 
-    const prompt = `You are an expert K-12 assessment designer. Create a comprehensive question bank for a unit of study.
+    const prompt = `You are an expert K-12 assessment designer specializing in creating standards-aligned question banks with proper DOK (Depth of Knowledge) level distribution.
 
 **QUESTION BANK DETAILS:**
 - Grade Level: ${gradeLevel}
 - Subject: ${subject}
-- Unit: ${unit}
-${topics ? `- Topics/Concepts to Cover: ${topics}` : ""}
-- Questions per topic: ${questionsPerTopic || 5}
-- ${questionTypesPrompt || "Include a variety of question types"}
-- Difficulty: ${difficulty || "Mixed"}
-${includeStandards ? `- Align to: ${standardsMap[standardsFramework] || "Standards"}` : ""}
+- Topic/Unit: ${topic}
+- Number of Questions: ${numQuestions}
+- DOK Levels to Include: ${dokList}
+- Question Types: ${typesList}
+${standards ? `- Standards Alignment: ${standards}` : ''}
 
-**CREATE A QUESTION BANK:**
+**CREATE A COMPREHENSIVE QUESTION BANK:**
 
 ---
 
-# QUESTION BANK: ${unit}
+# QUESTION BANK: ${topic}
 
 **Grade Level:** ${gradeLevel}  
 **Subject:** ${subject}  
-**Total Questions:** [count]
+**Total Questions:** ${numQuestions}
+**DOK Distribution:** ${dokList}
 
 ---
 
 ## HOW TO USE THIS QUESTION BANK
-- Questions are organized by topic/concept
-- Each question is tagged with difficulty level (E=Easy, M=Medium, H=Hard)
+- Questions are organized by DOK level for easy differentiation
+- Each question is tagged with question type and DOK level
 - Mix and match to create custom assessments
-${includeStandards ? "- Standards alignment noted for each question" : ""}
+- Use lower DOK for formative checks, higher DOK for deeper assessment
+${standards ? '- All questions aligned to specified standards' : ''}
 
 ---
 
-## QUESTIONS BY TOPIC
+${standards ? `## STANDARDS ADDRESSED
+${standards}
 
-### Topic 1: [Topic Name]
-${includeStandards ? "*Standards: [relevant standard codes]*" : ""}
+---` : ''}
 
-**Question 1** [Difficulty: E/M/H] ${includeStandards ? "[Standard: XXX]" : ""}
-Type: Multiple Choice
+## QUESTIONS BY DOK LEVEL
+
+${dokLevels.includes('dok1') ? `### DOK 1 - Recall & Reproduction
+*Questions that require recalling facts, terms, definitions, or simple procedures*
+
+` : ''}
+
+${dokLevels.includes('dok2') ? `### DOK 2 - Skills & Concepts  
+*Questions that require mental processing beyond recall, such as comparing, organizing, or interpreting*
+
+` : ''}
+
+${dokLevels.includes('dok3') ? `### DOK 3 - Strategic Thinking
+*Questions that require reasoning, planning, and using evidence to support conclusions*
+
+` : ''}
+
+${dokLevels.includes('dok4') ? `### DOK 4 - Extended Thinking
+*Questions that require complex reasoning, investigation, and connecting ideas across content*
+
+` : ''}
+
+For each DOK level included, create an appropriate number of questions (distribute ${numQuestions} questions across the selected DOK levels). Use the specified question types: ${typesList}.
+
+**For each question, format as:**
+
+**Question [#]** | Type: [Question Type] | DOK: [Level]
+${standards ? '[Standard: relevant standard code]' : ''}
+
 [Question text]
+
+[For multiple choice, include:]
 A) [option]
 B) [option]
 C) [option]
 D) [option]
-${includeAnswers ? "**Answer:** [correct answer with brief explanation]" : ""}
 
-**Question 2** [Difficulty: E/M/H]
-Type: Short Answer
-[Question text]
-${includeAnswers ? "**Answer:** [expected response]" : ""}
-
-...continue with ${questionsPerTopic || 5} questions for this topic
-
----
-
-### Topic 2: [Topic Name]
-...continue pattern for each topic
+${includeAnswerKey ? `**Answer:** [correct answer]` : ''}
+${includeDistractorRationale ? `**Distractor Analysis:**
+- A) [why this is correct/incorrect]
+- B) [why this is incorrect - common misconception it addresses]
+- C) [why this is incorrect - common misconception it addresses]
+- D) [why this is incorrect - common misconception it addresses]` : ''}
 
 ---
 
-## QUESTION SUMMARY TABLE
+${includeAnswerKey ? `## ANSWER KEY
 
-| # | Topic | Type | Difficulty | ${includeStandards ? "Standard |" : ""}
-|---|-------|------|------------|${includeStandards ? "---------|" : ""}
-| 1 | [topic] | MC | E | ${includeStandards ? "[code] |" : ""}
-| 2 | [topic] | SA | M | ${includeStandards ? "[code] |" : ""}
+[List all answers in a quick-reference format]
+
+| Q# | DOK | Type | Answer |
+|----|-----|------|--------|
+| 1  | [level] | [type] | [answer] |
 ...
 
----
+---` : ''}
 
-${includeAnswers ? `
-## ANSWER KEY
+## QUESTION SUMMARY
 
-### Topic 1
-1. [Answer]
-2. [Answer]
-...
-
-### Topic 2
-1. [Answer]
-...
-` : ""}
+| Q# | DOK Level | Question Type | ${standards ? 'Standard |' : ''} Difficulty |
+|----|-----------|---------------|${standards ? '----------|' : ''} ----------|
 
 ---
 
-**GUIDELINES:**
-- Create high-quality, unambiguous questions
-- Vary difficulty within each topic (some easy, some medium, some hard)
-- Include different question types as specified
-- Questions should assess genuine understanding, not just recall
-- All multiple choice distractors should be plausible
-- Tag each question with difficulty level
-- Organize for easy teacher use`;
+**IMPORTANT GUIDELINES:**
+- Create ${numQuestions} high-quality, unambiguous questions total
+- Distribute questions appropriately across the selected DOK levels
+- Ensure questions genuinely match their DOK level (don't label recall questions as DOK 3)
+- All multiple choice distractors should be plausible and address common misconceptions
+- Questions should assess genuine understanding appropriate to ${gradeLevel}
+- Vary the specific skills assessed within the topic
+${includeDistractorRationale ? '- Provide detailed rationale for why each distractor is wrong and what misconception it targets' : ''}`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",

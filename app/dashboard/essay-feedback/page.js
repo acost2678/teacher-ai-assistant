@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { useRouter } from 'next/navigation'
 import FileUpload from '../../../components/FileUpload'
@@ -40,6 +40,8 @@ export default function EssayFeedbackPage() {
   
   // UI state
   const [activeTab, setActiveTab] = useState('writing')
+  const [showDemo, setShowDemo] = useState(false)
+  const outputRef = useRef(null)
   
   const router = useRouter()
 
@@ -51,6 +53,79 @@ export default function EssayFeedbackPage() {
     }
     checkSession()
   }, [router])
+
+  const handleShowDemo = () => {
+    setGradeLevel('5th Grade')
+    setWritingType('narrative')
+    setAssignmentDescription('Write a personal narrative about a memorable experience. Include sensory details and your feelings.')
+    setStudentWriting(`My Best Day Ever
+
+Last summer me and my family went to the beach. It was really fun. We played in the water and made sand castles. The waves were big and scary but also fun.
+
+My favorite part was when we found seashells. I found a really big one that was pink and white. My mom said I could keep it. We also saw dolphins swimming far away in the ocean which was cool.
+
+For lunch we had sandwiches and chips. Then we got ice cream. I got chocolate. The day went by really fast. I didnt want to leave.
+
+When we got home I was tired but happy. I put my seashell on my dresser. I hope we can go back next summer. It was the best day ever.`)
+    setRubric(`CONTENT & IDEAS (25 points)
+- 25-22: Exceptional personal story with vivid, specific details
+- 21-18: Strong narrative with good details
+- 17-14: Adequate story, needs more specific details
+- Below 14: Story unclear or lacking development
+
+ORGANIZATION (25 points)
+- 25-22: Clear beginning, middle, end with smooth flow
+- 21-18: Good structure with minor flow issues
+- 17-14: Basic structure, transitions needed
+- Below 14: Disorganized or hard to follow
+
+VOICE & WORD CHOICE (25 points)
+- 25-22: Engaging voice, precise word choices
+- 21-18: Good voice, appropriate vocabulary
+- 17-14: Some voice present, word choices could be stronger
+- Below 14: Flat voice, limited vocabulary
+
+CONVENTIONS (25 points)
+- 25-22: Few to no errors
+- 21-18: Minor errors that don't interfere
+- 17-14: Some errors that affect readability
+- Below 14: Frequent errors`)
+    setTeacherSamples('')
+    setCustomInstructions('This student is working on adding more sensory details and varying sentence structure.')
+    setFeedbackFocus('balanced')
+    setFeedbackTone('encouraging')
+    setFeedbackDepth('detailed')
+    setIncludeStrengths(true)
+    setIncludeNextSteps(true)
+    setIncludeInlineSuggestions(true)
+    setIncludeGradeEstimate(true)
+    setShowDemo(true)
+    setGeneratedFeedback('')
+    setActiveTab('writing')
+  }
+
+  const handleResetDemo = () => {
+    setGradeLevel('9th Grade')
+    setWritingType('argumentative')
+    setAssignmentDescription('')
+    setStudentWriting('')
+    setRubric('')
+    setTeacherSamples('')
+    setCustomInstructions('')
+    setFeedbackFocus('balanced')
+    setFeedbackTone('encouraging')
+    setFeedbackDepth('detailed')
+    setIncludeStrengths(true)
+    setIncludeNextSteps(true)
+    setIncludeInlineSuggestions(true)
+    setIncludeGradeEstimate(false)
+    setShowDemo(false)
+    setGeneratedFeedback('')
+  }
+
+  const scrollToOutput = () => {
+    outputRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   const handleGenerate = async () => {
     if (!studentWriting.trim()) {
@@ -140,8 +215,33 @@ export default function EssayFeedbackPage() {
             <button onClick={() => router.push('/dashboard')} className="text-gray-600 hover:text-gray-800">← Back</button>
             <h1 className="text-xl font-bold text-gray-800">✍️ Essay Feedback Generator</h1>
           </div>
+          <div className="flex items-center gap-3">
+            {showDemo && (
+              <button onClick={handleResetDemo} className="text-gray-400 hover:text-gray-600 transition-colors text-xl" title="Reset Demo">↺</button>
+            )}
+            <button onClick={handleShowDemo} className={`text-sm font-medium px-3 py-1 rounded-lg transition-colors ${showDemo ? 'bg-gray-100 text-gray-400' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
+              See Demo
+            </button>
+          </div>
         </div>
       </nav>
+
+      {showDemo && (
+        <div className="max-w-7xl mx-auto px-6 pt-4">
+          <div className="bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-purple-500 text-xl">✨</span>
+              <div className="flex-1">
+                <h3 className="text-purple-700 font-medium">Demo is ready!</h3>
+                <p className="text-purple-600 text-sm">We've filled in example inputs including a student essay and rubric. Click Generate to see sample feedback.</p>
+              </div>
+              <button onClick={scrollToOutput} className="text-purple-600 hover:text-purple-700 text-sm font-medium whitespace-nowrap">
+                Scroll to output ↓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-7xl mx-auto p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -420,7 +520,7 @@ Overall, this shows real growth in your argumentative writing! Focus on those tr
           </div>
 
           {/* Output */}
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div ref={outputRef} className="bg-white p-6 rounded-lg shadow">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-gray-800">Generated Feedback</h2>

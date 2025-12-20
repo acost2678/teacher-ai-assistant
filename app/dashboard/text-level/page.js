@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { useRouter } from 'next/navigation'
 import FileUpload from '../../../components/FileUpload'
@@ -24,6 +24,8 @@ export default function TextLevelPage() {
   const [generatedText, setGeneratedText] = useState('')
   const [copied, setCopied] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [showDemo, setShowDemo] = useState(false)
+  const outputRef = useRef(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -34,6 +36,40 @@ export default function TextLevelPage() {
     }
     checkSession()
   }, [router])
+
+  const handleShowDemo = () => {
+    setOriginalText(`The process of photosynthesis is a complex biochemical pathway that enables plants, algae, and certain bacteria to convert light energy into chemical energy stored in glucose molecules. This remarkable transformation occurs primarily within specialized organelles called chloroplasts, which contain the pigment chlorophyll that absorbs light predominantly in the red and blue wavelengths while reflecting green light, thus giving plants their characteristic coloration.
+
+During the light-dependent reactions, water molecules are split through photolysis, releasing oxygen as a byproduct and generating ATP and NADPH, which serve as energy carriers. Subsequently, in the Calvin cycle (light-independent reactions), carbon dioxide is fixed and reduced using the ATP and NADPH to synthesize glucose, which can then be utilized for cellular respiration or converted into other organic compounds essential for plant growth and development.`)
+    setOriginalLevel('9-10')
+    setTargetLevel('5')
+    setTargetLexile('750L')
+    setPreserveElements(['key-facts', 'sequence'])
+    setAdjustments(['sentence-length', 'vocabulary', 'syntax', 'add-context'])
+    setIncludeVocabularySupport(true)
+    setIncludeComprehensionSupport(true)
+    setNumberOfVersions('1')
+    setShowDemo(true)
+    setGeneratedText('')
+  }
+
+  const handleResetDemo = () => {
+    setOriginalText('')
+    setOriginalLevel('')
+    setTargetLevel('3')
+    setTargetLexile('')
+    setPreserveElements(['key-facts', 'names-dates'])
+    setAdjustments(['sentence-length', 'vocabulary', 'syntax'])
+    setIncludeVocabularySupport(true)
+    setIncludeComprehensionSupport(false)
+    setNumberOfVersions('1')
+    setShowDemo(false)
+    setGeneratedText('')
+  }
+
+  const scrollToOutput = () => {
+    outputRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   const togglePreserve = (element) => {
     if (preserveElements.includes(element)) {
@@ -134,8 +170,33 @@ export default function TextLevelPage() {
             <button onClick={() => router.push('/dashboard')} className="text-gray-600 hover:text-gray-800">← Back</button>
             <h1 className="text-xl font-bold text-gray-800">📊 Text Leveler</h1>
           </div>
+          <div className="flex items-center gap-3">
+            {showDemo && (
+              <button onClick={handleResetDemo} className="text-gray-400 hover:text-gray-600 transition-colors text-xl" title="Reset Demo">↺</button>
+            )}
+            <button onClick={handleShowDemo} className={`text-sm font-medium px-3 py-1 rounded-lg transition-colors ${showDemo ? 'bg-gray-100 text-gray-400' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
+              See Demo
+            </button>
+          </div>
         </div>
       </nav>
+
+      {showDemo && (
+        <div className="max-w-7xl mx-auto px-6 pt-4">
+          <div className="bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-purple-500 text-xl">✨</span>
+              <div className="flex-1">
+                <h3 className="text-purple-700 font-medium">Demo is ready!</h3>
+                <p className="text-purple-600 text-sm">We've filled in a 9th-10th grade science text to level down to 5th grade. Click Generate to see the leveled version.</p>
+              </div>
+              <button onClick={scrollToOutput} className="text-purple-600 hover:text-purple-700 text-sm font-medium whitespace-nowrap">
+                Scroll to output ↓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-7xl mx-auto p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -288,7 +349,7 @@ export default function TextLevelPage() {
           </div>
 
           {/* Output */}
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div ref={outputRef} className="bg-white p-6 rounded-lg shadow">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-gray-800">Leveled Text</h2>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { useRouter } from 'next/navigation'
 import FileUpload from '../../../components/FileUpload'
@@ -26,6 +26,8 @@ export default function WritingConferencePage() {
   const [generatedNotes, setGeneratedNotes] = useState('')
   const [copied, setCopied] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [showDemo, setShowDemo] = useState(false)
+  const outputRef = useRef(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -36,6 +38,42 @@ export default function WritingConferencePage() {
     }
     checkSession()
   }, [router])
+
+  const handleShowDemo = () => {
+    setGradeLevel('6th Grade')
+    setStudentName('Maya')
+    setWritingType('Personal narrative about a challenge')
+    setConferenceType('revision')
+    setCurrentStrengths('Strong voice, creative ideas, good use of dialogue')
+    setCurrentChallenges('Needs help with paragraph transitions, showing vs telling emotions')
+    setPreviousGoals('Work on adding more sensory details to scenes')
+    setStudentWritingSample('')
+    setIncludeGoals(true)
+    setIncludeStrategies(true)
+    setIncludeFollowUp(true)
+    setShowDemo(true)
+    setGeneratedNotes('')
+  }
+
+  const handleResetDemo = () => {
+    setGradeLevel('9th Grade')
+    setStudentName('')
+    setWritingType('')
+    setConferenceType('process')
+    setCurrentStrengths('')
+    setCurrentChallenges('')
+    setPreviousGoals('')
+    setStudentWritingSample('')
+    setIncludeGoals(true)
+    setIncludeStrategies(true)
+    setIncludeFollowUp(true)
+    setShowDemo(false)
+    setGeneratedNotes('')
+  }
+
+  const scrollToOutput = () => {
+    outputRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   const handleGenerate = async () => {
     setGenerating(true)
@@ -115,8 +153,33 @@ export default function WritingConferencePage() {
             <button onClick={() => router.push('/dashboard')} className="text-gray-600 hover:text-gray-800">← Back</button>
             <h1 className="text-xl font-bold text-gray-800">📋 Writing Conference Notes</h1>
           </div>
+          <div className="flex items-center gap-3">
+            {showDemo && (
+              <button onClick={handleResetDemo} className="text-gray-400 hover:text-gray-600 transition-colors text-xl" title="Reset Demo">↺</button>
+            )}
+            <button onClick={handleShowDemo} className={`text-sm font-medium px-3 py-1 rounded-lg transition-colors ${showDemo ? 'bg-gray-100 text-gray-400' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
+              See Demo
+            </button>
+          </div>
         </div>
       </nav>
+
+      {showDemo && (
+        <div className="max-w-6xl mx-auto px-6 pt-4">
+          <div className="bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-purple-500 text-xl">✨</span>
+              <div className="flex-1">
+                <h3 className="text-purple-700 font-medium">Demo is ready!</h3>
+                <p className="text-purple-600 text-sm">We've filled in example inputs. Click Generate to see a sample output.</p>
+              </div>
+              <button onClick={scrollToOutput} className="text-purple-600 hover:text-purple-700 text-sm font-medium whitespace-nowrap">
+                Scroll to output ↓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-6xl mx-auto p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -222,7 +285,7 @@ export default function WritingConferencePage() {
           </div>
 
           {/* Output */}
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div ref={outputRef} className="bg-white p-6 rounded-lg shadow">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-gray-800">Generated Notes</h2>

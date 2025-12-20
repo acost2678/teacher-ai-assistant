@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { useRouter } from 'next/navigation'
 
@@ -23,6 +23,8 @@ export default function XPSystemPage() {
   const [generatedSystem, setGeneratedSystem] = useState('')
   const [copied, setCopied] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [showDemo, setShowDemo] = useState(false)
+  const outputRef = useRef(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -33,6 +35,38 @@ export default function XPSystemPage() {
     }
     checkSession()
   }, [router])
+
+  const handleShowDemo = () => {
+    setGradeLevel('4th Grade')
+    setClassSize('25')
+    setSystemTheme('adventure')
+    setTrackingMethod('hybrid')
+    setIncludeLeaderboard(true)
+    setIncludeLevels(true)
+    setIncludeShop(true)
+    setFocusAreas('Reading stamina, Math problem-solving, Collaboration')
+    setCustomBehaviors('Using growth mindset language, Helping a classmate, Turning in homework on time, Participating in class discussion')
+    setShowDemo(true)
+    setGeneratedSystem('')
+  }
+
+  const handleResetDemo = () => {
+    setGradeLevel('3rd Grade')
+    setClassSize('25')
+    setSystemTheme('simple')
+    setTrackingMethod('hybrid')
+    setIncludeLeaderboard(true)
+    setIncludeLevels(true)
+    setIncludeShop(true)
+    setFocusAreas('')
+    setCustomBehaviors('')
+    setShowDemo(false)
+    setGeneratedSystem('')
+  }
+
+  const scrollToOutput = () => {
+    outputRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   const handleGenerate = async () => {
     setGenerating(true)
@@ -108,8 +142,33 @@ export default function XPSystemPage() {
             <button onClick={() => router.push('/dashboard')} className="text-gray-600 hover:text-gray-800">← Back</button>
             <h1 className="text-xl font-bold text-gray-800">⚡ XP System Generator</h1>
           </div>
+          <div className="flex items-center gap-3">
+            {showDemo && (
+              <button onClick={handleResetDemo} className="text-gray-400 hover:text-gray-600 transition-colors text-xl" title="Reset Demo">↺</button>
+            )}
+            <button onClick={handleShowDemo} className={`text-sm font-medium px-3 py-1 rounded-lg transition-colors ${showDemo ? 'bg-gray-100 text-gray-400' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
+              See Demo
+            </button>
+          </div>
         </div>
       </nav>
+
+      {showDemo && (
+        <div className="max-w-6xl mx-auto px-6 pt-4">
+          <div className="bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-purple-500 text-xl">✨</span>
+              <div className="flex-1">
+                <h3 className="text-purple-700 font-medium">Demo is ready!</h3>
+                <p className="text-purple-600 text-sm">We've filled in an adventure-themed XP system with leveling, shop, and leaderboard. Click Generate to see the full system.</p>
+              </div>
+              <button onClick={scrollToOutput} className="text-purple-600 hover:text-purple-700 text-sm font-medium whitespace-nowrap">
+                Scroll to output ↓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-6xl mx-auto p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -226,7 +285,7 @@ export default function XPSystemPage() {
           </div>
 
           {/* Output */}
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div ref={outputRef} className="bg-white p-6 rounded-lg shadow">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-gray-800">Generated XP System</h2>

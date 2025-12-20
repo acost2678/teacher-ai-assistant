@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { supabase } from '../../../lib/supabase'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { supabase } from '../../../lib/supabase'
 
 export default function TeamBuildingPage() {
   const [user, setUser] = useState(null)
@@ -10,33 +10,68 @@ export default function TeamBuildingPage() {
   const [generating, setGenerating] = useState(false)
   const [exporting, setExporting] = useState(false)
   
-  const [gradeLevel, setGradeLevel] = useState('3rd-5th Grade')
-  const [activityGoal, setActivityGoal] = useState('class-community')
-  const [groupSize, setGroupSize] = useState('whole-class')
-  const [timeAvailable, setTimeAvailable] = useState('15-20')
-  const [spaceType, setSpaceType] = useState('classroom')
-  const [materialsAvailable, setMaterialsAvailable] = useState('')
-  const [classContext, setClassContext] = useState('')
-  const [includeVariations, setIncludeVariations] = useState(true)
-  const [includeDebrief, setIncludeDebrief] = useState(true)
+  const [gradeLevel, setGradeLevel] = useState('3rd Grade')
+  const [groupSize, setGroupSize] = useState('Whole Class (20-30)')
+  const [activityType, setActivityType] = useState('Icebreaker')
+  const [duration, setDuration] = useState('15 minutes')
+  const [setting, setSetting] = useState('Classroom')
+  const [focus, setFocus] = useState('')
+  const [materials, setMaterials] = useState('minimal')
+  const [quantity, setQuantity] = useState('3')
   
-  const [generatedActivity, setGeneratedActivity] = useState('')
+  const [generatedActivities, setGeneratedActivities] = useState('')
   const [copied, setCopied] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [showDemo, setShowDemo] = useState(false)
+  const outputRef = useRef(null)
   const router = useRouter()
 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) { setUser(session.user); setLoading(false) }
-      else { router.push('/auth/login') }
+      if (session?.user) {
+        setUser(session.user)
+        setLoading(false)
+      } else {
+        router.push('/auth/login')
+      }
     }
     checkSession()
   }, [router])
 
+  const handleShowDemo = () => {
+    setGradeLevel('4th Grade')
+    setGroupSize('Small Groups (4-6)')
+    setActivityType('Collaboration Challenge')
+    setDuration('20 minutes')
+    setSetting('Classroom')
+    setFocus('Building trust and communication skills')
+    setMaterials('basic')
+    setQuantity('3')
+    setShowDemo(true)
+    setGeneratedActivities('')
+  }
+
+  const handleResetDemo = () => {
+    setGradeLevel('3rd Grade')
+    setGroupSize('Whole Class (20-30)')
+    setActivityType('Icebreaker')
+    setDuration('15 minutes')
+    setSetting('Classroom')
+    setFocus('')
+    setMaterials('minimal')
+    setQuantity('3')
+    setShowDemo(false)
+    setGeneratedActivities('')
+  }
+
+  const scrollToOutput = () => {
+    outputRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   const handleGenerate = async () => {
     setGenerating(true)
-    setGeneratedActivity('')
+    setGeneratedActivities('')
     setSaved(false)
 
     try {
@@ -44,14 +79,22 @@ export default function TeamBuildingPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          gradeLevel, activityGoal, groupSize, timeAvailable,
-          spaceType, materialsAvailable, classContext, includeVariations, includeDebrief,
+          gradeLevel, groupSize, activityType, duration,
+          setting, focus, materials, quantity,
         }),
       })
+      
       const data = await response.json()
-      if (data.error) { alert('Error: ' + data.error) }
-      else { setGeneratedActivity(data.activity); await handleSave(data.activity) }
-    } catch (error) { alert('Error generating activity. Please try again.') }
+      if (data.error) {
+        alert('Error: ' + data.error)
+      } else {
+        setGeneratedActivities(data.activities)
+        await handleSave(data.activities)
+      }
+    } catch (error) {
+      alert('Error generating activities. Please try again.')
+    }
+    
     setGenerating(false)
   }
 
@@ -63,201 +106,221 @@ export default function TeamBuildingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.id,
-          title: `Team Building: ${activityGoal} (${gradeLevel})`,
+          title: `Team Building: ${activityType}`,
           toolType: 'team-building',
           toolName: 'Team Building',
           content,
-          metadata: { gradeLevel, activityGoal, timeAvailable },
+          metadata: { gradeLevel, groupSize, activityType, duration },
         }),
       })
       setSaved(true)
-    } catch (error) { console.error('Error saving:', error) }
+    } catch (error) {
+      console.error('Error saving:', error)
+    }
   }
 
   const handleExportDocx = async () => {
-    if (!generatedActivity) return
+    if (!generatedActivities) return
     setExporting(true)
     try {
       const response = await fetch('/api/export-docx', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          title: `Team Building Activity - ${activityGoal}`, 
-          content: generatedActivity, 
-          toolName: 'Team Building' 
+        body: JSON.stringify({
+          title: `Team Building - ${activityType}`,
+          content: generatedActivities,
+          toolName: 'Team Building'
         }),
       })
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
-        a.href = url; a.download = `Team_Building_${activityGoal}.docx`
-        document.body.appendChild(a); a.click(); document.body.removeChild(a)
+        a.href = url
+        a.download = `Team_Building_${activityType.replace(/\s+/g, '_')}.docx`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
         window.URL.revokeObjectURL(url)
       }
-    } catch (error) { alert('Failed to export') }
+    } catch (error) {
+      alert('Failed to export')
+    }
     setExporting(false)
   }
 
-  const handleCopy = () => { navigator.clipboard.writeText(generatedActivity); setCopied(true); setTimeout(() => setCopied(false), 2000) }
+  const handleCopy = () => {
+    navigator.clipboard.writeText(generatedActivities)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-100"><p className="text-gray-600">Loading...</p></div>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-md p-4">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/dashboard')} className="text-gray-600 hover:text-gray-800">← Back</button>
-            <h1 className="text-xl font-bold text-gray-800">🤝 Team Building Activities</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-2 text-sm">
+            <button onClick={() => router.push('/dashboard')} className="text-gray-500 hover:text-purple-600 transition-colors">Tools</button>
+            <span className="text-gray-300">›</span>
+            <span className="text-gray-800 font-medium">Team Building</span>
           </div>
         </div>
-      </nav>
+      </header>
 
-      <main className="max-w-6xl mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Input Form */}
-          <div className="bg-white p-6 rounded-lg shadow overflow-y-auto max-h-[85vh]">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">Activity Settings</h2>
-
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-gray-700 mb-2">Grade Level</label>
-                <select value={gradeLevel} onChange={(e) => setGradeLevel(e.target.value)}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-800">
-                  <option value="Pre-K/K">Pre-K / Kindergarten</option>
-                  <option value="1st-2nd Grade">1st-2nd Grade</option>
-                  <option value="3rd-5th Grade">3rd-5th Grade</option>
-                  <option value="6th-8th Grade">Middle School</option>
-                  <option value="9th-12th Grade">High School</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-2">Time Available</label>
-                <select value={timeAvailable} onChange={(e) => setTimeAvailable(e.target.value)}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-800">
-                  <option value="5-10">5-10 minutes (Quick)</option>
-                  <option value="15-20">15-20 minutes (Standard)</option>
-                  <option value="25-30">25-30 minutes (Extended)</option>
-                  <option value="45+">45+ minutes (Full period)</option>
-                </select>
-              </div>
+      <main className="max-w-4xl mx-auto px-6 py-8">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-800">Team Building</h1>
+              <p className="text-gray-500">Create activities that build classroom community and collaboration.</p>
             </div>
-
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Activity Goal</label>
-              <select value={activityGoal} onChange={(e) => setActivityGoal(e.target.value)}
-                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-800">
-                <option value="ice-breaker">🧊 Ice Breaker - Getting to know each other</option>
-                <option value="trust-building">🤲 Trust Building - Developing trust</option>
-                <option value="communication">💬 Communication - Listening and speaking</option>
-                <option value="collaboration">👥 Collaboration - Working together</option>
-                <option value="problem-solving">🧩 Problem Solving - Group challenges</option>
-                <option value="inclusion">🤗 Inclusion - Everyone feels valued</option>
-                <option value="energizer">⚡ Energizer - Boost energy and engagement</option>
-                <option value="creativity">🎨 Creativity - Creative thinking together</option>
-                <option value="conflict-resolution">🕊️ Conflict Resolution - Handling disagreements</option>
-                <option value="class-community">💚 Class Community - Overall culture building</option>
-              </select>
+            <div className="flex items-center gap-3">
+              {showDemo && (
+                <button onClick={handleResetDemo} className="text-gray-400 hover:text-gray-600 transition-colors" title="Reset">↺</button>
+              )}
+              <button onClick={handleShowDemo} className={`text-sm font-medium transition-colors ${showDemo ? 'text-gray-400' : 'text-purple-600 hover:text-purple-700'}`}>
+                See Demo
+              </button>
             </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-gray-700 mb-2">Group Size</label>
-                <select value={groupSize} onChange={(e) => setGroupSize(e.target.value)}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-800">
-                  <option value="pairs">Pairs (2)</option>
-                  <option value="small-groups">Small Groups (3-5)</option>
-                  <option value="medium-groups">Medium Groups (6-8)</option>
-                  <option value="whole-class">Whole Class (20-30)</option>
-                  <option value="large-group">Large Group (30+)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-2">Space Available</label>
-                <select value={spaceType} onChange={(e) => setSpaceType(e.target.value)}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-800">
-                  <option value="classroom">🏫 Regular Classroom</option>
-                  <option value="flexible">🔄 Flexible (can move furniture)</option>
-                  <option value="open-space">🏃 Open Space (gym/outdoor)</option>
-                  <option value="virtual">💻 Virtual/Remote</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Materials Available (optional)</label>
-              <input type="text" value={materialsAvailable} onChange={(e) => setMaterialsAvailable(e.target.value)}
-                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-800"
-                placeholder="e.g., paper, markers, balls, rope, blindfolds..." />
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Class Context (optional)</label>
-              <textarea value={classContext} onChange={(e) => setClassContext(e.target.value)}
-                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-800 h-16 text-sm"
-                placeholder="e.g., First week of school, class has some conflicts, shy students, just combined two classes..." />
-            </div>
-
-            {/* Include Options */}
-            <div className="mb-4 p-4 bg-teal-50 rounded-lg border border-teal-200">
-              <label className="block text-gray-800 font-medium mb-3">Include</label>
-              <div className="space-y-2">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" checked={includeDebrief}
-                    onChange={(e) => setIncludeDebrief(e.target.checked)} className="w-5 h-5 text-teal-600 rounded" />
-                  <span className="text-gray-700">💭 Debrief Questions</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" checked={includeVariations}
-                    onChange={(e) => setIncludeVariations(e.target.checked)} className="w-5 h-5 text-teal-600 rounded" />
-                  <span className="text-gray-700">🔄 Variations (easier, harder, virtual)</span>
-                </label>
-              </div>
-            </div>
-
-            <button onClick={handleGenerate} disabled={generating}
-              className="w-full bg-teal-600 text-white p-3 rounded-lg hover:bg-teal-700 disabled:opacity-50">
-              {generating ? '🤝 Creating Activity...' : '🤝 Generate Team Building Activity'}
-            </button>
           </div>
 
-          {/* Output */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-gray-800">Activity Plan</h2>
-                {saved && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">✓ Saved</span>}
-              </div>
-              {generatedActivity && (
-                <div className="flex gap-2">
-                  <button onClick={handleCopy} className="text-teal-600 hover:text-teal-800 text-sm">
-                    {copied ? '✓ Copied!' : 'Copy'}
-                  </button>
-                  <button onClick={handleExportDocx} disabled={exporting} 
-                    className="text-blue-600 hover:text-blue-800 text-sm disabled:opacity-50">
-                    {exporting ? 'Exporting...' : 'Export .docx'}
-                  </button>
+          {showDemo && (
+            <div className="bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <span className="text-purple-500 text-xl">✨</span>
+                <div className="flex-1">
+                  <h3 className="text-purple-700 font-medium">Demo is ready!</h3>
+                  <p className="text-purple-600 text-sm">We've filled in example inputs. Click Generate to see a sample output.</p>
                 </div>
-              )}
+                <button onClick={scrollToOutput} className="text-purple-600 hover:text-purple-700 text-sm font-medium whitespace-nowrap">
+                  Scroll to view output
+                </button>
+              </div>
             </div>
+          )}
 
-            {generatedActivity ? (
-              <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap text-gray-800 text-sm overflow-y-auto max-h-[70vh]">
-                {generatedActivity}
-              </div>
-            ) : (
-              <div className="bg-gray-50 p-4 rounded-lg text-gray-400 text-center h-96 flex items-center justify-center">
-                <div>
-                  <p className="text-4xl mb-4">🤝</p>
-                  <p className="mb-2">Your team building activity will appear here</p>
-                  <p className="text-xs">With facilitation tips & debrief questions</p>
-                </div>
+          <div className="grid grid-cols-2 gap-4 mb-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Grade Level:</label>
+              <select value={gradeLevel} onChange={(e) => setGradeLevel(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 appearance-none cursor-pointer">
+                {['Pre-K', 'Kindergarten', '1st Grade', '2nd Grade', '3rd Grade', '4th Grade', '5th Grade', '6th Grade', '7th Grade', '8th Grade', '9th Grade', '10th Grade', '11th Grade', '12th Grade'].map(g => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Group Size:</label>
+              <select value={groupSize} onChange={(e) => setGroupSize(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 appearance-none cursor-pointer">
+                {['Partners (2)', 'Small Groups (4-6)', 'Medium Groups (8-12)', 'Whole Class (20-30)', 'Large Group (30+)'].map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Activity Type:</label>
+              <select value={activityType} onChange={(e) => setActivityType(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 appearance-none cursor-pointer">
+                {['Icebreaker', 'Collaboration Challenge', 'Trust Building', 'Problem Solving', 'Communication Game', 'Creative Challenge', 'Movement/Physical', 'Discussion/Sharing'].map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Duration:</label>
+              <select value={duration} onChange={(e) => setDuration(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 appearance-none cursor-pointer">
+                {['5 minutes', '10 minutes', '15 minutes', '20 minutes', '30 minutes', '45 minutes'].map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Setting:</label>
+              <select value={setting} onChange={(e) => setSetting(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 appearance-none cursor-pointer">
+                {['Classroom', 'Gymnasium', 'Outdoors', 'Cafeteria/Large Room', 'Virtual/Online'].map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Materials:</label>
+              <select value={materials} onChange={(e) => setMaterials(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 appearance-none cursor-pointer">
+                <option value="none">No materials</option>
+                <option value="minimal">Minimal (paper/pencils)</option>
+                <option value="basic">Basic classroom supplies</option>
+                <option value="special">Special materials needed</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Specific Focus (optional):</label>
+            <input type="text" value={focus} onChange={(e) => setFocus(e.target.value)} placeholder="e.g., First week of school, After a conflict, Building trust, New student integration"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 placeholder-gray-400" />
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">How Many Activities:</label>
+            <select value={quantity} onChange={(e) => setQuantity(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 appearance-none cursor-pointer">
+              {['1', '3', '5', '10'].map(q => (
+                <option key={q} value={q}>{q} activit{q === '1' ? 'y' : 'ies'}</option>
+              ))}
+            </select>
+          </div>
+
+          <button onClick={handleGenerate} disabled={generating}
+            className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white font-medium py-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+            {generating ? (<><span className="animate-spin">⏳</span>Generating...</>) : (<><span>✨</span>Generate</>)}
+          </button>
+        </div>
+
+        <div ref={outputRef} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-gray-800">Generated Activities</h2>
+              {saved && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">✓ Saved</span>}
+            </div>
+            {generatedActivities && (
+              <div className="flex items-center gap-3">
+                <button onClick={handleCopy} className="text-sm text-purple-600 hover:text-purple-700 font-medium">{copied ? '✓ Copied!' : '📋 Copy'}</button>
+                <button onClick={handleExportDocx} disabled={exporting} className="text-sm text-purple-600 hover:text-purple-700 font-medium disabled:text-purple-300">
+                  {exporting ? 'Exporting...' : '📄 Export .docx'}
+                </button>
               </div>
             )}
           </div>
 
+          {generatedActivities ? (
+            <div className="bg-gray-50 rounded-xl p-5 min-h-[200px] max-h-[500px] overflow-y-auto">
+              <pre className="whitespace-pre-wrap text-gray-700 text-sm font-sans leading-relaxed">{generatedActivities}</pre>
+            </div>
+          ) : (
+            <div className="bg-gray-50 rounded-xl p-5 min-h-[200px] flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-4xl mb-3">🤝</div>
+                <p className="text-gray-400">Your generated activities will appear here</p>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

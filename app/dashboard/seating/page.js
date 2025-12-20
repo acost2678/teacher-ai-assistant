@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { useRouter } from 'next/navigation'
 
@@ -22,6 +22,8 @@ export default function SeatingPage() {
   const [generatedPlan, setGeneratedPlan] = useState('')
   const [copied, setCopied] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [showDemo, setShowDemo] = useState(false)
+  const outputRef = useRef(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -32,6 +34,36 @@ export default function SeatingPage() {
     }
     checkSession()
   }, [router])
+
+  const handleShowDemo = () => {
+    setGradeLevel('3rd-5th Grade')
+    setClassSize('24')
+    setRoomSetup('groups-4')
+    setGroupingGoal('academic-mixed')
+    setStudentConsiderations('3 students with IEPs for attention (need proximity to teacher), 2 ELL students who benefit from peer support, 2 students who should not sit together due to off-task behavior when paired')
+    setConstraints('Windows on right side cause afternoon glare, door is on left front, projector screen at front center')
+    setIncludeStrategies(true)
+    setIncludeAlternatives(true)
+    setShowDemo(true)
+    setGeneratedPlan('')
+  }
+
+  const handleResetDemo = () => {
+    setGradeLevel('3rd-5th Grade')
+    setClassSize('24')
+    setRoomSetup('groups-4')
+    setGroupingGoal('academic-mixed')
+    setStudentConsiderations('')
+    setConstraints('')
+    setIncludeStrategies(true)
+    setIncludeAlternatives(true)
+    setShowDemo(false)
+    setGeneratedPlan('')
+  }
+
+  const scrollToOutput = () => {
+    outputRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   const handleGenerate = async () => {
     setGenerating(true)
@@ -110,8 +142,33 @@ export default function SeatingPage() {
             <button onClick={() => router.push('/dashboard')} className="text-gray-600 hover:text-gray-800">← Back</button>
             <h1 className="text-xl font-bold text-gray-800">🪑 Seating Chart Helper</h1>
           </div>
+          <div className="flex items-center gap-3">
+            {showDemo && (
+              <button onClick={handleResetDemo} className="text-gray-400 hover:text-gray-600 transition-colors text-xl" title="Reset Demo">↺</button>
+            )}
+            <button onClick={handleShowDemo} className={`text-sm font-medium px-3 py-1 rounded-lg transition-colors ${showDemo ? 'bg-gray-100 text-gray-400' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
+              See Demo
+            </button>
+          </div>
         </div>
       </nav>
+
+      {showDemo && (
+        <div className="max-w-6xl mx-auto px-6 pt-4">
+          <div className="bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-purple-500 text-xl">✨</span>
+              <div className="flex-1">
+                <h3 className="text-purple-700 font-medium">Demo is ready!</h3>
+                <p className="text-purple-600 text-sm">We've filled in a 24-student classroom with IEP and ELL considerations. Click Generate to see a seating plan.</p>
+              </div>
+              <button onClick={scrollToOutput} className="text-purple-600 hover:text-purple-700 text-sm font-medium whitespace-nowrap">
+                Scroll to output ↓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-6xl mx-auto p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -212,7 +269,7 @@ export default function SeatingPage() {
           </div>
 
           {/* Output */}
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div ref={outputRef} className="bg-white p-6 rounded-lg shadow">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-gray-800">Seating Plan</h2>

@@ -1,17 +1,18 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const anthropic = new Anthropic();
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 export async function POST(request) {
   try {
     const {
       gradeLevel,
       conflictType,
-      numberOfStudents,
-      setting,
+      outputType,
+      scenario,
       includeRolePlay,
-      includeFollowUp,
-      specificScenario,
+      includeVisual,
     } = await request.json();
 
     if (!gradeLevel) {
@@ -21,38 +22,38 @@ export async function POST(request) {
       );
     }
 
-    const conflictTypes = {
-      "peer-argument": "Peer Argument - Disagreement between students",
-      "exclusion": "Exclusion/Left Out - Student feeling excluded from group",
-      "physical": "Physical Conflict - Pushing, hitting, taking items",
-      "verbal": "Verbal Conflict - Name-calling, teasing, mean words",
-      "rumor-gossip": "Rumors/Gossip - Spreading stories or social drama",
-      "sharing-turns": "Sharing/Turn-Taking - Disputes over materials or turns",
-      "group-work": "Group Work Conflict - Disagreements during collaboration",
-      "misunderstanding": "Misunderstanding - Miscommunication causing hurt",
-      "general": "General - Multiple conflict types",
+    const outputDescriptions = {
+      'script': 'Mediation Script - A step-by-step script for immediate use when mediating a conflict',
+      'lesson': 'Full Lesson Plan - A complete lesson teaching conflict resolution skills',
+      'guide': 'Student Problem-Solving Guide - A guide students can use independently',
+      'scenarios': 'Practice Scenarios - Role-play scenarios for teaching and practice',
+      'poster': 'Classroom Poster Content - Visual poster content for display',
     };
 
-    const prompt = `You are an expert in restorative practices, conflict resolution, and social-emotional learning. Create trauma-informed, restorative conflict resolution scripts and guidance for teachers.
+    let prompt = `You are an expert in restorative practices, conflict resolution, and social-emotional learning for K-12 students. Create trauma-informed, restorative conflict resolution content for teachers.
 
-**CONFLICT RESOLUTION DETAILS:**
+**CONFLICT RESOLUTION REQUEST:**
 - Grade Level: ${gradeLevel}
-- Conflict Type: ${conflictTypes[conflictType] || conflictTypes["general"]}
-- Number of Students Involved: ${numberOfStudents || "2"}
-- Setting: ${setting || "Classroom"}
-${specificScenario ? `- Specific Scenario: ${specificScenario}` : ""}
-${includeRolePlay ? "- Include role-play scenarios for teaching" : ""}
-${includeFollowUp ? "- Include follow-up check-in plan" : ""}
+- Conflict Type: ${conflictType}
+- Output Needed: ${outputDescriptions[outputType] || outputType}
+${scenario ? `- Specific Scenario: ${scenario}` : ''}
+${includeRolePlay ? '- Include role-play practice scenarios' : ''}
+${includeVisual ? '- Include visual support ideas' : ''}
 
-**CREATE A COMPREHENSIVE CONFLICT RESOLUTION GUIDE:**
+**CREATE THE FOLLOWING:**
 
+`;
+
+    // Customize prompt based on output type
+    if (outputType === 'script') {
+      prompt += `
 ---
 
-# 🤝 Conflict Resolution: ${conflictType ? conflictType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Peer Conflict'}
+# 🤝 Conflict Resolution Mediation Script
 
 **Grade Level:** ${gradeLevel}
-**Conflict Type:** ${conflictType || "General"}
-**Students Involved:** ${numberOfStudents || "2"}
+**Conflict Type:** ${conflictType}
+${scenario ? `**Scenario:** ${scenario}` : ''}
 
 ---
 
@@ -76,17 +77,15 @@ ${includeFollowUp ? "- Include follow-up check-in plan" : ""}
 **Check the Students:**
 - Are they regulated enough to talk?
 - Do they need calming time first?
-- Is anyone too upset to participate?
 
 **Set Up:**
 - Private, calm space
 - Enough time (15-20 minutes minimum)
-- Tissues available
-- Seating at equal level (no power dynamics)
+- Seating at equal level
 
 ---
 
-## 📜 Conflict Resolution Script
+## 📜 Step-by-Step Mediation Script
 
 ### Step 1: Set the Stage (2 min)
 
@@ -118,7 +117,7 @@ ${includeFollowUp ? "- Include follow-up check-in plan" : ""}
 **To Student 2:**
 "[Name], now I'd like to hear what happened from your point of view."
 
-**Same process - summarize and validate**
+[Same process - summarize and validate]
 
 ---
 
@@ -128,10 +127,10 @@ ${includeFollowUp ? "- Include follow-up check-in plan" : ""}
 "[Name], when you hear what [Student 2] said, what stands out to you?"
 
 **To Student 2:**
-"[Name], when you hear what [Student 1] shared, is there anything that surprises you or that you want to respond to?"
+"[Name], when you hear what [Student 1] shared, is there anything that surprises you?"
 
 **Facilitate:**
-"It sounds like you both felt [emotion]. That makes sense. This has been hard for both of you."
+"It sounds like you both felt [emotion]. That makes sense."
 
 ---
 
@@ -142,15 +141,11 @@ ${includeFollowUp ? "- Include follow-up check-in plan" : ""}
 "What do you need from each other to move forward?"
 "What could you do differently next time?"
 
-**If they're stuck:**
-"Some students have tried... would any of those work for you?"
+**If they're stuck, offer ideas:**
 - Taking a break when frustrated
 - Using "I feel" statements
 - Getting a teacher to help before it gets big
-- Agreeing to disagree
-
-**Help them agree:**
-"So it sounds like you're both willing to [solution]. Is that right?"
+- Agreeing to disagree respectfully
 
 ---
 
@@ -158,15 +153,8 @@ ${includeFollowUp ? "- Include follow-up check-in plan" : ""}
 
 **Say:**
 "Thank you both for working through this. That took courage."
-
 "Let's make a plan: You've agreed to [summarize agreement]."
-
 "I'm going to check in with both of you [when] to see how things are going."
-
-"Is there anything else either of you needs before we finish?"
-
-**Optional - if appropriate:**
-"Would you like to shake hands / do a fist bump / say anything to each other?"
 
 ---
 
@@ -175,104 +163,475 @@ ${includeFollowUp ? "- Include follow-up check-in plan" : ""}
 **For Validation:**
 - "That sounds really frustrating."
 - "I can understand why you felt that way."
-- "It makes sense that you're upset."
 
 **For Clarification:**
 - "Help me understand what you mean by..."
-- "Can you tell me more about that part?"
-- "What happened right before that?"
+- "Can you tell me more about that?"
 
 **For Redirection:**
 - "Let's focus on how we can fix this."
-- "I hear that you're upset, but let's use kind words."
 - "We're here to solve this, not to decide who's right."
-
-**For Encouragement:**
-- "You're doing a great job talking this through."
-- "I can see you're really trying."
-- "This is hard, and you're handling it well."
 
 ---
 
 ${includeRolePlay ? `
-## 🎭 Role-Play Scenarios for Teaching
+## 🎭 Practice Scenarios
 
-**Scenario 1: [Conflict type situation]**
-- Setup: [Brief scenario appropriate for ${gradeLevel}]
-- Practice: Students role-play using conflict resolution steps
-- Debrief: "What worked? What was hard?"
+**Scenario 1:** [Age-appropriate ${conflictType} scenario for ${gradeLevel}]
+- What happened: [Brief description]
+- Practice the script with this situation
 
-**Scenario 2: [Different situation]**
-- Setup: [Another age-appropriate scenario]
-- Practice: Try different approaches
-- Debrief: "How did it feel to be heard?"
+**Scenario 2:** [Different variation of ${conflictType}]
+- What happened: [Brief description]
+- How might this conversation go differently?
+` : ''}
 
-**Teaching Tips:**
-- Model being both mediator and participant
-- Celebrate effort, not perfection
-- Practice when everyone is calm
-` : ""}
+${includeVisual ? `
+## 🖼️ Visual Support Ideas
 
-${includeFollowUp ? `
-## 📅 Follow-Up Plan
+**Conflict Resolution Steps Poster:**
+1. STOP - Take a breath
+2. TALK - Use "I feel" statements
+3. LISTEN - Hear the other side
+4. SOLVE - Find a solution together
+5. MOVE ON - Let it go
 
-**Same Day:**
-- Check in briefly with each student separately
-- "How are you feeling about our conversation?"
+**Feeling Words Chart:** Include emotion vocabulary appropriate for ${gradeLevel}
 
-**Next Day:**
-- Observe interactions
-- Brief check-in: "How did things go?"
-
-**One Week Later:**
-- Longer check-in: "Has the agreement been working?"
-- Adjust if needed
-
-**Document:**
-- Date and nature of conflict
-- Resolution reached
-- Follow-up notes
-- Any patterns to watch
-` : ""}
+**"I Feel" Statement Starter:** "I feel ___ when ___ because ___. I need ___."
+` : ''}
 
 ---
 
 ## ⚠️ When to Escalate
 
-**Get additional support if:**
+Get additional support if:
 - Physical safety is a concern
 - Bullying pattern is present
 - Student discloses abuse/harm
-- Student is in crisis
-- You don't feel equipped to handle it
 - Same conflict keeps repeating
+`;
+    } else if (outputType === 'lesson') {
+      prompt += `
+---
 
-**Who to involve:**
-- School counselor
-- Administrator
-- Parent/guardian
-- School psychologist
+# 📚 Conflict Resolution Lesson Plan
+
+**Grade Level:** ${gradeLevel}
+**Focus:** ${conflictType}
+**Duration:** 30-45 minutes
 
 ---
 
-## 🌟 Prevention Strategies
+## 🎯 Learning Objectives
 
-**Build skills before conflicts happen:**
-- Teach "I feel" statements
-- Practice active listening
-- Role-play scenarios
-- Create classroom agreements together
-- Celebrate peaceful problem-solving
+By the end of this lesson, students will be able to:
+- Identify steps in peaceful conflict resolution
+- Practice using "I feel" statements
+- Demonstrate active listening skills
+- Apply problem-solving strategies to conflicts
+
+## 📚 CASEL Competencies
+
+- Relationship Skills
+- Responsible Decision-Making
+- Self-Management
+
+---
+
+## 📋 Materials Needed
+
+- [List specific materials]
+- Chart paper or whiteboard
+- Conflict resolution steps poster
+- Role-play scenario cards
+
+---
+
+## 🎬 Lesson Outline
+
+### Opening (5-7 min)
+**Hook:**
+[Engaging opening activity or question about conflicts]
+
+**Discussion:**
+"Has anyone ever had a disagreement with a friend? How did it feel?"
+
+---
+
+### Direct Instruction (10 min)
+
+**Teach the Steps:**
+[Step-by-step conflict resolution process appropriate for ${gradeLevel}]
+
+**Model:**
+Think-aloud demonstration of using the steps
+
+---
+
+### Guided Practice (10-15 min)
+
+**Partner Practice:**
+[Structured activity for practicing skills]
+
+**Scenarios to Use:**
+${scenario ? `- ${scenario}` : '[Age-appropriate scenarios]'}
+- [Additional scenario]
+- [Additional scenario]
+
+---
+
+### Independent Practice (5-10 min)
+
+[Activity for students to apply learning]
+
+---
+
+### Closing (5 min)
+
+**Reflection:**
+"What's one thing you'll try next time you have a conflict?"
+
+**Commitment:**
+Students share or write one strategy they'll use
+
+---
+
+${includeRolePlay ? `
+## 🎭 Role-Play Scenarios
+
+**Scenario 1:** [Detailed ${conflictType} scenario]
+- Characters: [Who's involved]
+- Setup: [What happened]
+- Practice Goal: [What skill to practice]
+
+**Scenario 2:** [Another scenario]
+- Characters: [Who's involved]
+- Setup: [What happened]
+- Practice Goal: [What skill to practice]
+
+**Debrief Questions:**
+- How did it feel to be heard?
+- What was hardest about staying calm?
+- What helped you find a solution?
+` : ''}
+
+${includeVisual ? `
+## 🖼️ Visual Supports
+
+**Anchor Chart Content:**
+[Content for a conflict resolution anchor chart]
+
+**Student Reference Card:**
+[Pocket-sized steps students can keep at desk]
+` : ''}
+
+---
+
+## 📊 Assessment
+
+**Formative:**
+- Observe role-play participation
+- Listen to partner discussions
+- Exit ticket responses
+
+**Success Criteria:**
+- Student can name the steps
+- Student uses "I feel" statements
+- Student demonstrates listening
+
+---
+
+## 🔄 Differentiation
+
+**For struggling students:**
+- [Modifications]
+
+**For advanced students:**
+- [Extensions]
+`;
+    } else if (outputType === 'guide') {
+      prompt += `
+---
+
+# 🤝 Problem-Solving Guide for Students
+
+**Grade Level:** ${gradeLevel}
+**Topic:** ${conflictType}
+
+---
+
+## When You Have a Problem With Someone...
+
+### Step 1: STOP 🛑
+- Take a deep breath
+- Count to 5 in your head
+- Wait until you feel calmer
+
+### Step 2: THINK 🧠
+- What happened?
+- How do I feel?
+- How might they feel?
+
+### Step 3: TALK 💬
+Use an "I feel" statement:
+"I feel _____ when _____ because _____."
+
+### Step 4: LISTEN 👂
+- Let them talk
+- Don't interrupt
+- Try to understand their side
+
+### Step 5: SOLVE 💡
+- What can we do to fix this?
+- What ideas do you have?
+- What will we both agree to?
+
+### Step 6: MOVE ON ➡️
+- Shake hands or say "okay"
+- Let it go
+- Go back to having fun
+
+---
+
+## Words You Can Use
+
+**To say how you feel:**
+[Age-appropriate feeling words for ${gradeLevel}]
+
+**To ask for what you need:**
+- "Can we take turns?"
+- "I need some space right now."
+- "Can we talk about this?"
+
+**To find a solution:**
+- "What if we..."
+- "How about..."
+- "Would it help if..."
+
+---
+
+## When to Get an Adult
+
+Get a teacher if:
+- Someone is being hurt
+- Someone won't stop
+- You've tried and it's not working
+- You feel unsafe
+
+---
+
+${includeVisual ? `
+## 🖼️ Visual Version
+
+[Describe a visual flowchart or step-by-step picture guide appropriate for ${gradeLevel}]
+` : ''}
+
+${includeRolePlay ? `
+## Practice Situations
+
+**Situation 1:** ${scenario || '[Common ' + conflictType + ' scenario]'}
+- What would you say?
+- What would you do?
+
+**Situation 2:** [Another scenario]
+- Practice using the steps
+` : ''}
+`;
+    } else if (outputType === 'scenarios') {
+      prompt += `
+---
+
+# 🎭 Conflict Resolution Practice Scenarios
+
+**Grade Level:** ${gradeLevel}
+**Conflict Type:** ${conflictType}
+
+---
+
+## How to Use These Scenarios
+
+1. Read the scenario aloud or give to partners
+2. Students role-play using conflict resolution steps
+3. Debrief: What worked? What was hard?
+4. Try again with different approaches
+
+---
+
+## Scenarios
+
+### Scenario 1
+${scenario ? scenario : '[Detailed ' + conflictType + ' scenario appropriate for ' + gradeLevel + ']'}
+
+**Characters:** [Who's involved]
+**What happened:** [The conflict]
+**Practice focus:** [Which skill to emphasize]
+
+**Discussion questions:**
+- How might each person feel?
+- What could they say to each other?
+- What solutions might work?
+
+---
+
+### Scenario 2
+[Different ${conflictType} situation]
+
+**Characters:** [Who's involved]
+**What happened:** [The conflict]
+**Practice focus:** [Which skill to emphasize]
+
+---
+
+### Scenario 3
+[Another variation]
+
+**Characters:** [Who's involved]
+**What happened:** [The conflict]
+**Practice focus:** [Which skill to emphasize]
+
+---
+
+### Scenario 4
+[More complex situation]
+
+**Characters:** [Who's involved]
+**What happened:** [The conflict]
+**Practice focus:** [Which skill to emphasize]
+
+---
+
+### Scenario 5
+[Challenging scenario]
+
+**Characters:** [Who's involved]
+**What happened:** [The conflict]
+**Practice focus:** [Which skill to emphasize]
+
+---
+
+## Debrief Questions
+
+After each role-play, discuss:
+- What did you try? Did it work?
+- How did it feel to be heard?
+- What would you do differently?
+- What was the hardest part?
+
+---
+
+${includeVisual ? `
+## 🖼️ Visual Supports
+
+**Scenario Cards:** Create cards with each scenario that students can draw from a pile
+
+**Role Labels:** Give students character name tags to wear during role-play
+
+**Steps Reminder:** Post the conflict resolution steps where students can see them during practice
+` : ''}
+`;
+    } else if (outputType === 'poster') {
+      prompt += `
+---
+
+# 🖼️ Conflict Resolution Poster Content
+
+**Grade Level:** ${gradeLevel}
+**Focus:** ${conflictType}
+
+---
+
+## Poster 1: "Solve It Together" Steps
+
+**Title:** SOLVE IT TOGETHER! 🤝
+
+**The Steps:**
+
+1️⃣ **STOP**
+Take a breath. Calm your body.
+
+2️⃣ **TALK**
+Use "I feel ___ when ___ because ___"
+
+3️⃣ **LISTEN**
+Hear their side. Don't interrupt.
+
+4️⃣ **BRAINSTORM**
+Think of solutions together.
+
+5️⃣ **AGREE**
+Pick one that works for both.
+
+6️⃣ **TRY IT**
+Give it a chance!
+
+---
+
+## Poster 2: "I Feel" Statements
+
+**Title:** SPEAK UP WITH "I FEEL" 💬
+
+**The Formula:**
+"I feel _____ when _____ because _____. I need _____."
+
+**Examples:**
+[Age-appropriate examples for ${gradeLevel}]
+
+---
+
+## Poster 3: Problem-Solving Solutions
+
+**Title:** WAYS TO SOLVE IT 💡
+
+**Options:**
+- Take turns
+- Share
+- Trade
+- Compromise
+- Get help
+- Walk away and cool down
+- Agree to disagree
+- Say sorry and move on
+
+---
+
+## Poster 4: Feelings Vocabulary
+
+**Title:** HOW DO YOU FEEL? 😊😢😠
+
+[Grid of feeling words with emoji faces appropriate for ${gradeLevel}]
+
+---
+
+## Design Recommendations
+
+**Colors:** Calming colors like blue, green, purple
+**Size:** Large enough to read from across the room
+**Placement:** Eye level, near conflict-prone areas or calm down corner
+**Icons:** Use simple icons for non-readers
+**Language:** Simple, positive wording
+
+${includeVisual ? `
+**Additional Visual Elements:**
+- Diverse student illustrations
+- Step-by-step arrows or numbers
+- Border with peaceful imagery
+- QR code linking to practice videos (optional)
+` : ''}
+`;
+    }
+
+    prompt += `
 
 ---
 
 **GUIDELINES:**
-- All language must be developmentally appropriate for ${gradeLevel}
-- Use trauma-informed, non-punitive approaches
+- All content must be developmentally appropriate for ${gradeLevel}
+- Use trauma-informed, non-punitive language
 - Focus on restoration, not punishment
 - Validate all feelings while addressing behaviors
 - Never force apologies
-- Maintain equity - no assumptions about who's "right"`;
+- Maintain equity and avoid assumptions`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
@@ -280,13 +639,13 @@ ${includeFollowUp ? `
       messages: [{ role: "user", content: prompt }],
     });
 
-    const resolution = message.content[0].text;
+    const content = message.content[0].text;
 
-    return Response.json({ resolution });
+    return Response.json({ content });
   } catch (error) {
-    console.error("Error generating conflict resolution:", error);
+    console.error("Error generating conflict resolution content:", error);
     return Response.json(
-      { error: "Failed to generate conflict resolution script" },
+      { error: "Failed to generate conflict resolution content" },
       { status: 500 }
     );
   }

@@ -34,81 +34,69 @@ export default function DashboardPage() {
 
   const categories = [
     { id: 'all', label: 'All Tools' },
-    { id: 'documentation', label: 'Documentation' },
-    { id: 'lesson', label: 'Lesson Planning' },
-    { id: 'assessment', label: 'Assessment' },
-    { id: 'gamification', label: 'Gamification' },
-    { id: 'sel', label: 'SEL Tools' },
-    { id: 'writing', label: 'Writing' },
-    { id: 'reading', label: 'Reading' },
-    { id: 'differentiation', label: 'Differentiation' },
-    { id: 'math', label: 'Math' },
-    { id: 'management', label: 'Management' },
+    { id: 'communication', label: '📧 Communication Hub' },
+    { id: 'grading', label: '📊 Grading & Assessment' },
+    { id: 'compliance', label: '📋 Compliance & Documentation' },
+    { id: 'classroom', label: '🎯 Classroom Systems' },
+    { id: 'support', label: '💚 Student Support' },
+    { id: 'instructional', label: '📚 Instructional Prep' },
   ]
 
   const tools = [
-    // Documentation & Communication
-    { id: 'parent-email', name: 'Parent Email', icon: '📧', category: 'documentation', categoryLabel: 'Communication', description: 'Draft professional emails to parents with customizable tone' },
-    { id: 'progress-report', name: 'Progress Report', icon: '📊', category: 'documentation', categoryLabel: 'Documentation', description: 'Generate narrative student progress reports' },
-    { id: 'iep-update', name: 'IEP Update', icon: '🎯', category: 'documentation', categoryLabel: 'Documentation', description: 'Create IDEA-compliant IEP progress updates' },
-    { id: 'incident-report', name: 'Incident Report', icon: '⚠️', category: 'documentation', categoryLabel: 'Documentation', description: 'Document behavior incidents objectively' },
-    { id: 'meeting-notes', name: 'Meeting Notes', icon: '📋', category: 'documentation', categoryLabel: 'Documentation', description: 'Generate organized meeting summaries' },
+    // Communication Hub - Parent contact & meetings
+    { id: 'parent-email', name: 'Parent Email', icon: '📧', category: 'communication', categoryLabel: 'Communication', description: 'Draft professional emails to parents with customizable tone' },
+    { id: 'meeting-notes', name: 'Meeting Notes', icon: '📋', category: 'communication', categoryLabel: 'Communication', description: 'Generate organized meeting summaries' },
+    { id: 'progress-report', name: 'Progress Report', icon: '📊', category: 'communication', categoryLabel: 'Communication', description: 'Generate narrative student progress reports' },
     
-    // Lesson Planning
-    { id: 'lesson-plan', name: 'Lesson Plan', icon: '📚', category: 'lesson', categoryLabel: 'Instructional Materials', description: 'Create standards-aligned lesson plans with differentiation' },
-    { id: 'pacing-guide', name: 'Pacing Guide', icon: '📅', category: 'lesson', categoryLabel: 'Instructional Materials', description: 'Map curriculum across weeks or quarters' },
-    { id: 'warm-up', name: 'Warm-Up Generator', icon: '🌅', category: 'lesson', categoryLabel: 'Instructional Materials', description: 'Create engaging bell ringers and do-nows' },
-    { id: 'exit-ticket', name: 'Exit Ticket', icon: '🎫', category: 'lesson', categoryLabel: 'Assessment', description: 'Quick formative assessment checks' },
+    // Grading & Assessment - Evaluation workflows
+    { id: 'rubric', name: 'Rubric Builder', icon: '📊', category: 'grading', categoryLabel: 'Grading', description: 'Create clear scoring criteria for any assignment' },
+    { id: 'essay-feedback', name: 'Essay Feedback', icon: '✍️', category: 'grading', categoryLabel: 'Grading', description: 'Generate detailed, growth-focused writing feedback' },
+    { id: 'math-feedback', name: 'Math Feedback', icon: '✨', category: 'grading', categoryLabel: 'Grading', description: 'Growth-mindset feedback on math work' },
+    { id: 'quiz', name: 'Quiz/Test Generator', icon: '📝', category: 'grading', categoryLabel: 'Grading', description: 'Generate aligned assessments with answer keys' },
+    { id: 'question-bank', name: 'Question Bank', icon: '🏦', category: 'grading', categoryLabel: 'Grading', description: 'Build reusable questions by standard' },
+    { id: 'exit-ticket', name: 'Exit Ticket', icon: '🎫', category: 'grading', categoryLabel: 'Grading', description: 'Quick formative assessment checks' },
     
-    // Assessment
-    { id: 'rubric', name: 'Rubric Builder', icon: '📊', category: 'assessment', categoryLabel: 'Assessment', description: 'Create clear scoring criteria for any assignment' },
-    { id: 'quiz', name: 'Quiz/Test Generator', icon: '📝', category: 'assessment', categoryLabel: 'Assessment', description: 'Generate aligned assessments with answer keys' },
-    { id: 'question-bank', name: 'Question Bank', icon: '🏦', category: 'assessment', categoryLabel: 'Assessment', description: 'Build reusable questions by standard' },
+    // Compliance & Documentation - Legal & required paperwork
+    { id: 'iep-update', name: 'IEP Update', icon: '🎯', category: 'compliance', categoryLabel: 'Compliance', description: 'Create IDEA-compliant IEP progress updates' },
+    { id: 'incident-report', name: 'Incident Report', icon: '⚠️', category: 'compliance', categoryLabel: 'Compliance', description: 'Document behavior incidents objectively' },
+    { id: 'accommodation', name: 'Accommodations', icon: '♿', category: 'compliance', categoryLabel: 'Compliance', description: 'IEP/504/ELL support suggestions' },
     
-    // Gamification
-    { id: 'quest', name: 'Quest Designer', icon: '🗡️', category: 'gamification', categoryLabel: 'Engagement', description: 'Create learning adventures with storylines' },
-    { id: 'boss-battle', name: 'Boss Battle', icon: '🐉', category: 'gamification', categoryLabel: 'Engagement', description: 'Turn review into epic game battles' },
-    { id: 'badges', name: 'Badge Designer', icon: '🏆', category: 'gamification', categoryLabel: 'Engagement', description: 'Design achievement badges with tiers' },
-    { id: 'xp-system', name: 'XP System', icon: '⚡', category: 'gamification', categoryLabel: 'Engagement', description: 'Complete classroom point system' },
+    // Classroom Systems - Daily operations & management
+    { id: 'procedure', name: 'Procedure Builder', icon: '📋', category: 'classroom', categoryLabel: 'Classroom Systems', description: 'Teachable routines with I Do/We Do/You Do' },
+    { id: 'seating', name: 'Seating Chart', icon: '🪑', category: 'classroom', categoryLabel: 'Classroom Systems', description: 'Strategic grouping recommendations' },
+    { id: 'behavior-plan', name: 'Behavior Plan', icon: '💚', category: 'classroom', categoryLabel: 'Classroom Systems', description: 'PBS interventions, function-based' },
+    { id: 'sub-plan', name: 'Sub Plans', icon: '📝', category: 'classroom', categoryLabel: 'Classroom Systems', description: 'Emergency-ready substitute packets' },
+    { id: 'xp-system', name: 'XP System', icon: '⚡', category: 'classroom', categoryLabel: 'Classroom Systems', description: 'Complete classroom point system' },
+    { id: 'badges', name: 'Badge Designer', icon: '🏆', category: 'classroom', categoryLabel: 'Classroom Systems', description: 'Design achievement badges with tiers' },
     
-    // SEL Tools
-    { id: 'sel-checkin', name: 'SEL Check-In', icon: '💚', category: 'sel', categoryLabel: 'Student Support', description: 'CASEL-aligned morning meeting prompts' },
-    { id: 'sel-activity', name: 'SEL Activity', icon: '🎯', category: 'sel', categoryLabel: 'Student Support', description: 'Classroom activities for all 5 competencies' },
-    { id: 'calming-corner', name: 'Calming Corner', icon: '🧘', category: 'sel', categoryLabel: 'Student Support', description: 'Self-regulation strategies with scripts' },
-    { id: 'conflict-resolution', name: 'Conflict Resolution', icon: '🕊️', category: 'sel', categoryLabel: 'Student Support', description: 'Restorative conversation scripts' },
-    { id: 'sel-worksheet', name: 'SEL Worksheet', icon: '📝', category: 'sel', categoryLabel: 'Student Support', description: 'Printable social-emotional skill builders' },
-    { id: 'social-story', name: 'Social Story', icon: '📖', category: 'sel', categoryLabel: 'Student Support', description: 'Visual social narratives using Carol Gray method' },
-    { id: 'team-building', name: 'Team Building', icon: '🤝', category: 'sel', categoryLabel: 'Student Support', description: 'Community-building activities with debrief' },
+    // Student Support - SEL & behavioral support
+    { id: 'sel-checkin', name: 'SEL Check-In', icon: '💚', category: 'support', categoryLabel: 'Student Support', description: 'CASEL-aligned morning meeting prompts' },
+    { id: 'sel-activity', name: 'SEL Activity', icon: '🎯', category: 'support', categoryLabel: 'Student Support', description: 'Classroom activities for all 5 competencies' },
+    { id: 'calming-corner', name: 'Calming Corner', icon: '🧘', category: 'support', categoryLabel: 'Student Support', description: 'Self-regulation strategies with scripts' },
+    { id: 'conflict-resolution', name: 'Conflict Resolution', icon: '🕊️', category: 'support', categoryLabel: 'Student Support', description: 'Restorative conversation scripts' },
+    { id: 'sel-worksheet', name: 'SEL Worksheet', icon: '📝', category: 'support', categoryLabel: 'Student Support', description: 'Printable social-emotional skill builders' },
+    { id: 'social-story', name: 'Social Story', icon: '📖', category: 'support', categoryLabel: 'Student Support', description: 'Visual social narratives using Carol Gray method' },
+    { id: 'team-building', name: 'Team Building', icon: '🤝', category: 'support', categoryLabel: 'Student Support', description: 'Community-building activities with debrief' },
     
-    // Writing
-    { id: 'essay-feedback', name: 'Essay Feedback', icon: '✍️', category: 'writing', categoryLabel: 'Writing', description: 'Generate detailed, growth-focused writing feedback' },
-    { id: 'writing-prompt', name: 'Writing Prompt', icon: '📝', category: 'writing', categoryLabel: 'Writing', description: 'Engaging prompts for all genres' },
-    { id: 'peer-review', name: 'Peer Review Guide', icon: '👥', category: 'writing', categoryLabel: 'Writing', description: 'Structured student feedback guides' },
-    { id: 'writing-conference', name: 'Writing Conference', icon: '📋', category: 'writing', categoryLabel: 'Writing', description: 'Conference guides with questions and tips' },
-    
-    // Reading
-    { id: 'comprehension', name: 'Comprehension Qs', icon: '📖', category: 'reading', categoryLabel: 'Reading', description: 'DOK-leveled text-dependent questions' },
-    { id: 'vocabulary', name: 'Vocabulary Builder', icon: '📚', category: 'reading', categoryLabel: 'Reading', description: 'Deep word knowledge with Frayer model' },
-    { id: 'guided-reading', name: 'Guided Reading', icon: '📖', category: 'reading', categoryLabel: 'Reading', description: 'Small group lesson plans' },
-    { id: 'reading-response', name: 'Reading Response', icon: '📝', category: 'reading', categoryLabel: 'Reading', description: 'Response prompts by genre' },
-    
-    // Differentiation
-    { id: 'text-level', name: 'Text Leveler', icon: '📊', category: 'differentiation', categoryLabel: 'Differentiation', description: 'Adjust text to specific Lexile levels' },
-    { id: 'tiered-activity', name: 'Tiered Activities', icon: '🎯', category: 'differentiation', categoryLabel: 'Differentiation', description: '3-tier differentiation, same objective' },
-    { id: 'scaffold', name: 'Scaffold Builder', icon: '🛠️', category: 'differentiation', categoryLabel: 'Differentiation', description: 'Learning supports with gradual release' },
-    { id: 'accommodation', name: 'Accommodations', icon: '♿', category: 'differentiation', categoryLabel: 'Differentiation', description: 'IEP/504/ELL support suggestions' },
-    
-    // Math
-    { id: 'error-analysis', name: 'Error Analysis', icon: '🔍', category: 'math', categoryLabel: 'Math', description: 'Diagnose misconceptions with re-teaching' },
-    { id: 'concept-explainer', name: 'Concept Explainer', icon: '📐', category: 'math', categoryLabel: 'Math', description: 'Multiple representations for concepts' },
-    { id: 'math-feedback', name: 'Math Feedback', icon: '✨', category: 'math', categoryLabel: 'Math', description: 'Growth-mindset feedback on math work' },
-    { id: 'word-problems', name: 'Word Problems', icon: '🔢', category: 'math', categoryLabel: 'Math', description: 'Engaging problems with student interests' },
-    
-    // Management
-    { id: 'procedure', name: 'Procedure Builder', icon: '📋', category: 'management', categoryLabel: 'Management', description: 'Teachable routines with I Do/We Do/You Do' },
-    { id: 'seating', name: 'Seating Chart', icon: '🪑', category: 'management', categoryLabel: 'Management', description: 'Strategic grouping recommendations' },
-    { id: 'behavior-plan', name: 'Behavior Plan', icon: '💚', category: 'management', categoryLabel: 'Management', description: 'PBS interventions, function-based' },
-    { id: 'sub-plan', name: 'Sub Plans', icon: '📝', category: 'management', categoryLabel: 'Management', description: 'Emergency-ready substitute packets' },
+    // Instructional Prep - Lesson planning & content creation
+    { id: 'lesson-plan', name: 'Lesson Plan', icon: '📚', category: 'instructional', categoryLabel: 'Instructional', description: 'Create standards-aligned lesson plans with differentiation' },
+    { id: 'pacing-guide', name: 'Pacing Guide', icon: '📅', category: 'instructional', categoryLabel: 'Instructional', description: 'Map curriculum across weeks or quarters' },
+    { id: 'warm-up', name: 'Warm-Up Generator', icon: '🌅', category: 'instructional', categoryLabel: 'Instructional', description: 'Create engaging bell ringers and do-nows' },
+    { id: 'writing-prompt', name: 'Writing Prompt', icon: '📝', category: 'instructional', categoryLabel: 'Instructional', description: 'Engaging prompts for all genres' },
+    { id: 'comprehension', name: 'Comprehension Qs', icon: '📖', category: 'instructional', categoryLabel: 'Instructional', description: 'DOK-leveled text-dependent questions' },
+    { id: 'vocabulary', name: 'Vocabulary Builder', icon: '📚', category: 'instructional', categoryLabel: 'Instructional', description: 'Deep word knowledge with Frayer model' },
+    { id: 'word-problems', name: 'Word Problems', icon: '🔢', category: 'instructional', categoryLabel: 'Instructional', description: 'Engaging problems with student interests' },
+    { id: 'concept-explainer', name: 'Concept Explainer', icon: '📐', category: 'instructional', categoryLabel: 'Instructional', description: 'Multiple representations for concepts' },
+    { id: 'error-analysis', name: 'Error Analysis', icon: '🔍', category: 'instructional', categoryLabel: 'Instructional', description: 'Diagnose misconceptions with re-teaching' },
+    { id: 'text-level', name: 'Text Leveler', icon: '📊', category: 'instructional', categoryLabel: 'Instructional', description: 'Adjust text to specific Lexile levels' },
+    { id: 'tiered-activity', name: 'Tiered Activities', icon: '🎯', category: 'instructional', categoryLabel: 'Instructional', description: '3-tier differentiation, same objective' },
+    { id: 'scaffold', name: 'Scaffold Builder', icon: '🛠️', category: 'instructional', categoryLabel: 'Instructional', description: 'Learning supports with gradual release' },
+    { id: 'guided-reading', name: 'Guided Reading', icon: '📖', category: 'instructional', categoryLabel: 'Instructional', description: 'Small group lesson plans' },
+    { id: 'reading-response', name: 'Reading Response', icon: '📝', category: 'instructional', categoryLabel: 'Instructional', description: 'Response prompts by genre' },
+    { id: 'peer-review', name: 'Peer Review Guide', icon: '👥', category: 'instructional', categoryLabel: 'Instructional', description: 'Structured student feedback guides' },
+    { id: 'writing-conference', name: 'Writing Conference', icon: '📋', category: 'instructional', categoryLabel: 'Instructional', description: 'Conference guides with questions and tips' },
+    { id: 'quest', name: 'Quest Designer', icon: '🗡️', category: 'instructional', categoryLabel: 'Instructional', description: 'Create learning adventures with storylines' },
+    { id: 'boss-battle', name: 'Boss Battle', icon: '🐉', category: 'instructional', categoryLabel: 'Instructional', description: 'Turn review into epic game battles' },
   ]
 
   const filteredTools = tools.filter(tool => {
@@ -118,7 +106,12 @@ export default function DashboardPage() {
     return matchesSearch && matchesCategory
   })
 
-  const recommendedTools = tools.slice(0, 4)
+  const recommendedTools = [
+    tools.find(t => t.id === 'parent-email'),
+    tools.find(t => t.id === 'progress-report'),
+    tools.find(t => t.id === 'rubric'),
+    tools.find(t => t.id === 'behavior-plan'),
+  ].filter(Boolean)
 
   if (loading) {
     return (
@@ -133,7 +126,7 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-semibold text-gray-800">Teacher Tools</h1>
+          <h1 className="text-xl font-semibold text-gray-800">Teacher Operating System</h1>
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push('/dashboard/history')}
@@ -160,11 +153,18 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Welcome Section */}
         <div className="text-center mb-8">
-          <div className="text-5xl mb-4">🍎</div>
+          <div className="mb-4 flex justify-center">
+            <img 
+              src="/axolotl-mascot.png" 
+              alt="Friendly axolotl mascot" 
+              className="w-48 h-auto"
+              style={{ imageRendering: 'auto' }}
+            />
+          </div>
           <h2 className="text-2xl font-semibold text-gray-800 mb-2">
             Hi {displayName}, you're amazing.
           </h2>
-          <p className="text-gray-500">43 AI-powered tools to save you time</p>
+          <p className="text-gray-500">Your Teacher Operating System - Automate the admin work that steals your evenings</p>
         </div>
 
         {/* Search Bar */}
@@ -186,7 +186,7 @@ export default function DashboardPage() {
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-gray-100">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-purple-500">✨</span>
-              <h3 className="font-medium text-gray-700">We recommend getting started with these tools</h3>
+              <h3 className="font-medium text-gray-700">Start automating your workflow with these high-impact tools</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {recommendedTools.map(tool => (
