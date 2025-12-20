@@ -64,6 +64,7 @@ export default function DashboardPage() {
     // Compliance & Documentation - Legal & required paperwork
     { id: 'batch-iep-updates', name: 'Batch IEP Updates', icon: '📋', category: 'compliance', categoryLabel: 'Compliance', description: 'IDEA-compliant progress updates for your entire caseload', badge: 'NEW' },
     { id: 'fba-writer', name: 'FBA Writer', icon: '🔍', category: 'compliance', categoryLabel: 'Compliance', description: 'Generate FBAs with function hypothesis from ABC data', badge: 'NEW' },
+    { id: 'bip-generator', name: 'BIP Generator', icon: '📋', category: 'compliance', categoryLabel: 'Compliance', description: 'Generate behavior intervention plans from FBA data', badge: 'NEW' },
     { id: 'iep-update', name: 'IEP Update', icon: '🎯', category: 'compliance', categoryLabel: 'Compliance', description: 'Single IEP progress update' },
     { id: 'incident-report', name: 'Incident Report', icon: '⚠️', category: 'compliance', categoryLabel: 'Compliance', description: 'Document behavior incidents objectively' },
     { id: 'accommodation', name: 'Accommodations', icon: '♿', category: 'compliance', categoryLabel: 'Compliance', description: 'IEP/504/ELL support suggestions' },
@@ -137,6 +138,13 @@ export default function DashboardPage() {
           <h1 className="text-xl font-semibold text-gray-800">Teacher Operating System</h1>
           <div className="flex items-center gap-4">
             <button
+              onClick={() => router.push('/dashboard/axel-assistant')}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-full text-sm font-medium transition-colors"
+            >
+              <span>🦎</span>
+              <span>Ask AXEL</span>
+            </button>
+            <button
               onClick={() => router.push('/dashboard/history')}
               className="text-gray-500 hover:text-gray-700 text-sm"
             >
@@ -162,12 +170,20 @@ export default function DashboardPage() {
         {/* Welcome Section */}
         <div className="text-center mb-8">
           <div className="mb-4 flex justify-center">
-            <img 
-              src="/axolotl-mascot.png" 
-              alt="Friendly axolotl mascot" 
-              className="w-48 h-auto"
-              style={{ imageRendering: 'auto' }}
-            />
+            <button 
+              onClick={() => router.push('/dashboard/axel-assistant')}
+              className="group relative cursor-pointer transition-transform hover:scale-105"
+            >
+              <img 
+                src="/axolotl-mascot.png" 
+                alt="AXEL - Your AI Teaching Assistant" 
+                className="w-48 h-auto"
+                style={{ imageRendering: 'auto' }}
+              />
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                Chat with AXEL 🦎
+              </div>
+            </button>
           </div>
           <h2 className="text-2xl font-semibold text-gray-800 mb-2">
             Hi {displayName}, you're amazing.
@@ -276,6 +292,17 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
+
+      {/* Floating AXEL Button */}
+      <button
+        onClick={() => router.push('/dashboard/axel-assistant')}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 group z-50"
+      >
+        <span className="text-2xl">🦎</span>
+        <div className="absolute right-full mr-3 bg-gray-800 text-white text-sm px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+          Need help? Ask AXEL!
+        </div>
+      </button>
     </div>
   )
 }
