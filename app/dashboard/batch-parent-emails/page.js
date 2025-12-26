@@ -46,16 +46,16 @@ export default function BatchParentEmailsPage() {
 
   // Initialize student notes array when number changes
   useEffect(() => {
-    if (!showDemo) {
-      setStudentNotes(prev => {
-        const newNotes = [...prev]
-        while (newNotes.length < numberOfStudents) {
-          newNotes.push({ identifier: `Student ${newNotes.length + 1}`, positives: '', concerns: '', action: '' })
-        }
-        return newNotes.slice(0, numberOfStudents)
-      })
-    }
-  }, [numberOfStudents, showDemo])
+    // Always update student notes when numberOfStudents changes
+    // If in demo mode and user changes count, exit demo mode
+    setStudentNotes(prev => {
+      const newNotes = [...prev]
+      while (newNotes.length < numberOfStudents) {
+        newNotes.push({ identifier: `Student ${newNotes.length + 1}`, positives: '', concerns: '', action: '' })
+      }
+      return newNotes.slice(0, numberOfStudents)
+    })
+  }, [numberOfStudents])
 
   const handleShowDemo = () => {
     setGradeLevel('4th Grade')
@@ -423,7 +423,7 @@ export default function BatchParentEmailsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Number of Students</label>
                 <select value={numberOfStudents} onChange={(e) => setNumberOfStudents(parseInt(e.target.value))}
                   className="w-32 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700">
-                  {[5, 10, 15, 20, 25, 30, 35].map(n => (
+                  {[3, 5, 10, 15, 20, 25, 30, 35].map(n => (
                     <option key={n} value={n}>{n} students</option>
                   ))}
                 </select>

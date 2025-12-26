@@ -10,8 +10,6 @@ export default function ParentEmailPage() {
   const [generating, setGenerating] = useState(false)
   const [exporting, setExporting] = useState(false)
   
-  const [studentName, setStudentName] = useState('')
-  const [parentName, setParentName] = useState('')
   const [emailType, setEmailType] = useState('General Update')
   const [tone, setTone] = useState('Warm & Friendly')
   const [keyPoints, setKeyPoints] = useState('')
@@ -40,18 +38,14 @@ export default function ParentEmailPage() {
   }, [router])
 
   const handleShowDemo = () => {
-    setStudentName('Marcus Johnson')
-    setParentName('Mrs. Johnson')
     setEmailType('Positive News')
     setTone('Warm & Friendly')
-    setKeyPoints('Marcus has shown incredible improvement in math this week. He helped two classmates understand fractions during group work. He scored 95% on his quiz. I wanted to share this positive news with you!')
+    setKeyPoints('Student has shown incredible improvement in math this week. Helped two classmates understand fractions during group work. Scored 95% on the quiz. I wanted to share this positive news!')
     setShowDemo(true)
     setGeneratedEmail('')
   }
 
   const handleResetDemo = () => {
-    setStudentName('')
-    setParentName('')
     setEmailType('General Update')
     setTone('Warm & Friendly')
     setKeyPoints('')
@@ -96,8 +90,6 @@ export default function ParentEmailPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          studentName,
-          parentName,
           emailType,
           tone,
           keyPoints: keyPoints || fileContent,
@@ -126,11 +118,11 @@ export default function ParentEmailPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.id,
-          title: `Parent Email: ${studentName || 'Student'}`,
+          title: `Parent Email - ${emailType}`,
           toolType: 'parent-email',
           toolName: 'Parent Email',
           content,
-          metadata: { studentName, parentName, emailType, tone },
+          metadata: { emailType, tone },
         }),
       })
       setSaved(true)
@@ -147,7 +139,7 @@ export default function ParentEmailPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: `Parent Email - ${studentName || 'Student'}`,
+          title: `Parent Email - ${emailType}`,
           content: generatedEmail,
           toolName: 'Parent Email'
         }),
@@ -157,7 +149,7 @@ export default function ParentEmailPage() {
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `Parent_Email_${studentName || 'Student'}.docx`
+        a.download = `Parent_Email_${emailType.replace(/\s+/g, '_')}.docx`
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
@@ -228,6 +220,17 @@ export default function ParentEmailPage() {
             </div>
           </div>
 
+          {/* Privacy Notice */}
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <span className="text-green-600 text-xl">🔒</span>
+              <div>
+                <h3 className="text-green-800 font-medium">Privacy-First Design</h3>
+                <p className="text-green-700 text-sm">Generated emails use "[Student Name]", "[Parent Name]", and "[Teacher Name]" placeholders. Replace them with actual names when you copy to your email system.</p>
+              </div>
+            </div>
+          </div>
+
           {/* Exemplar Banner */}
           {showDemo && (
             <div className="bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-4 mb-6">
@@ -235,7 +238,7 @@ export default function ParentEmailPage() {
                 <span className="text-purple-500 text-xl">✨</span>
                 <div className="flex-1">
                   <h3 className="text-purple-700 font-medium">Demo is ready!</h3>
-                  <p className="text-purple-600 text-sm">We've filled in example inputs and generated an example output.</p>
+                  <p className="text-purple-600 text-sm">We've filled in example inputs. Click Generate to see the output.</p>
                 </div>
                 <button
                   onClick={scrollToOutput}
@@ -246,34 +249,6 @@ export default function ParentEmailPage() {
               </div>
             </div>
           )}
-
-          {/* Student Name */}
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Student Name
-            </label>
-            <input
-              type="text"
-              value={studentName}
-              onChange={(e) => setStudentName(e.target.value)}
-              placeholder="Enter student's name"
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700 placeholder-gray-400"
-            />
-          </div>
-
-          {/* Parent Name */}
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Parent Name (optional)
-            </label>
-            <input
-              type="text"
-              value={parentName}
-              onChange={(e) => setParentName(e.target.value)}
-              placeholder="Enter parent's name"
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700 placeholder-gray-400"
-            />
-          </div>
 
           {/* Email Type */}
           <div className="mb-5">
@@ -420,6 +395,16 @@ export default function ParentEmailPage() {
                 <div className="text-4xl mb-3">📧</div>
                 <p className="text-gray-400">Your generated email will appear here</p>
               </div>
+            </div>
+          )}
+
+          {/* Placeholder Reminder */}
+          {generatedEmail && (
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-amber-800 text-sm flex items-center gap-2">
+                <span>💡</span>
+                <span>Remember to replace <strong>[Student Name]</strong>, <strong>[Parent Name]</strong>, and <strong>[Teacher Name]</strong> with actual names before sending.</span>
+              </p>
             </div>
           )}
         </div>
