@@ -17,6 +17,9 @@ export async function POST(request) {
       bloomsLevels,
       customInstructions,
       timeLimit,
+      // NEW: Regenerate with feedback
+      previousQuiz,
+      feedbackToFix,
     } = await request.json();
 
     if (!topic || !gradeLevel || !subject) {
@@ -63,7 +66,49 @@ Include questions at these cognitive levels:
 - ${levels}`;
     }
 
-    const prompt = `You are an expert K-12 assessment designer. Create a well-structured ${assessmentType || "quiz"}.
+    // Check if this is a regeneration request
+    const isRegeneration = previousQuiz && feedbackToFix;
+
+    let prompt;
+
+    if (isRegeneration) {
+      // REGENERATION PROMPT - uses the previous quiz and applies changes
+      prompt = `You are an expert K-12 assessment designer. A teacher has generated a quiz but wants specific changes made.
+
+**ORIGINAL QUIZ:**
+${previousQuiz}
+
+**TEACHER'S REQUESTED CHANGES:**
+${feedbackToFix}
+
+**ORIGINAL ASSESSMENT PARAMETERS (for reference):**
+- Grade Level: ${gradeLevel}
+- Subject: ${subject}
+- Topic: ${topic}
+- Type: ${assessmentType || "Quiz"}
+- Number of Questions: ${questionCount || 10}
+- Difficulty: ${difficulty || "On grade level"}
+${timeLimit ? `- Time Limit: ${timeLimit}` : ""}
+${customInstructions ? `- Special Instructions: ${customInstructions}` : ""}
+${questionTypesPrompt}
+${bloomsPrompt}
+
+**YOUR TASK:**
+Regenerate the quiz incorporating the teacher's requested changes. Keep what was good about the original, but make the specific changes they requested.
+
+- If they want to change specific questions, modify those questions
+- If they want different question types, adjust accordingly  
+- If they want different difficulty, adjust the complexity
+- Keep the same professional formatting
+
+${includePointValues ? "Include point values for each question." : ""}
+${includeAnswerKey ? "Include a complete ANSWER KEY at the end." : ""}
+
+Generate the improved ${assessmentType || "quiz"} now:`;
+
+    } else {
+      // ORIGINAL PROMPT - generates fresh quiz with detailed templates
+      prompt = `You are an expert K-12 assessment designer. Create a well-structured ${assessmentType || "quiz"}.
 
 **ASSESSMENT DETAILS:**
 - Grade Level: ${gradeLevel}
@@ -220,6 +265,7 @@ ${includeAnswerKey ? `
 - Match difficulty to grade level: ${difficulty || "on grade level"}
 - Ensure questions actually assess understanding of ${topic}
 - Format cleanly for easy printing`;
+    }
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
