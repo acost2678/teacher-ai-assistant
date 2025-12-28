@@ -63,8 +63,7 @@ export default function DashboardPage() {
    
     // Grading & Assessment - Evaluation workflows
     { id: 'quiz-grader', name: 'Quiz Grader', icon: '✅', category: 'grading', categoryLabel: 'Grading', description: 'Grade quizzes with personalized feedback and class analytics', badge: 'NEW' },
-    { id: 'quiz-grader', name: 'Quiz Grader', icon: '✅', category: 'grading', categoryLabel: 'Grading', description: 'Grade quizzes with personalized feedback and class analytics' },
-   
+    
     // Compliance & Documentation - Legal & required paperwork
     { id: 'batch-iep-updates', name: 'Batch IEP Updates', icon: '📋', category: 'compliance', categoryLabel: 'Compliance', description: 'IDEA-compliant progress updates for your entire caseload', badge: 'NEW' },
     { id: 'fba-writer', name: 'FBA Writer', icon: '🔍', category: 'compliance', categoryLabel: 'Compliance', description: 'Generate FBAs with function hypothesis from ABC data', badge: 'NEW' },
@@ -108,8 +107,8 @@ export default function DashboardPage() {
     { id: 'reading-response', name: 'Reading Response', icon: '📝', category: 'instructional', categoryLabel: 'Instructional', description: 'Response prompts by genre' },
     { id: 'peer-review', name: 'Peer Review Guide', icon: '👥', category: 'instructional', categoryLabel: 'Instructional', description: 'Structured student feedback guides' },
     { id: 'writing-conference', name: 'Writing Conference', icon: '📋', category: 'instructional', categoryLabel: 'Instructional', description: 'Conference guides with questions and tips' },
-   // Instructional tools section
-    { id: 'project-creator', name: 'Project Creator', icon: '🎯', category: 'instructional', categoryLabel: 'Instructional', description: 'Generate project ideas and complete project packets', badge: 'NEW' },
+   
+    // Instructional tools section
     { id: 'project-creator', name: 'Project Creator', icon: '🎯', category: 'instructional', categoryLabel: 'Instructional', description: 'Generate creative project ideas and complete project packets from your lessons', badge: 'NEW' },
     { id: 'quest', name: 'Quest Designer', icon: '🗡️', category: 'instructional', categoryLabel: 'Instructional', description: 'Create learning adventures with storylines' },
     { id: 'boss-battle', name: 'Boss Battle', icon: '🐉', category: 'instructional', categoryLabel: 'Instructional', description: 'Turn review into epic game battles' },
