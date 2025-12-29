@@ -13,15 +13,18 @@ export default function BatchIEPUpdatesPage() {
   
   // Settings
   const [reportingPeriod, setReportingPeriod] = useState('Quarter 2')
-  const [gradeLevel, setGradeLevel] = useState('Elementary (K-5)')
+  const [gradeLevel, setGradeLevel] = useState('5th Grade')
   const [toneStyle, setToneStyle] = useState('professional')
+  const [reportDate, setReportDate] = useState(new Date().toISOString().split('T')[0])
   
-  // Students data - privacy-first
+  // Number of students selector
   const [numberOfStudents, setNumberOfStudents] = useState(5)
-  const [studentGoals, setStudentGoals] = useState([])
+  
+  // Students data
+  const [studentData, setStudentData] = useState([])
   const [generatedUpdates, setGeneratedUpdates] = useState([])
   
-  const [activeTab, setActiveTab] = useState('input') // 'input' | 'review'
+  const [activeTab, setActiveTab] = useState('input')
   const [selectedUpdate, setSelectedUpdate] = useState(0)
   const [editedUpdates, setEditedUpdates] = useState([])
   const [showDemo, setShowDemo] = useState(false)
@@ -41,26 +44,48 @@ export default function BatchIEPUpdatesPage() {
     checkSession()
   }, [router])
 
-  // Initialize student goals array when number changes
+  // Initialize student data array when number changes
   useEffect(() => {
     if (!showDemo) {
-      setStudentGoals(prev => {
-        const newGoals = [...prev]
-        while (newGoals.length < numberOfStudents) {
-          newGoals.push({ 
-            identifier: `Student ${newGoals.length + 1}`, 
+      setStudentData(prev => {
+        const newData = [...prev]
+        while (newData.length < numberOfStudents) {
+          newData.push({ 
+            identifier: `Student ${newData.length + 1}`, 
+            disabilityCategory: 'Specific Learning Disability',
             goalArea: 'reading',
             annualGoal: '',
             baseline: '',
             currentLevel: '',
+            percentGoalAchieved: '',
             interventions: '',
-            progress: 'progressing'
+            accommodations: '',
+            progress: 'progressing',
+            recommendations: '',
+            nextSteps: '',
+            nextReviewDate: ''
           })
         }
-        return newGoals.slice(0, numberOfStudents)
+        return newData.slice(0, numberOfStudents)
       })
     }
   }, [numberOfStudents, showDemo])
+
+  const disabilityCategories = [
+    'Specific Learning Disability',
+    'Speech or Language Impairment',
+    'Other Health Impairment',
+    'Autism',
+    'Emotional Disturbance',
+    'Intellectual Disability',
+    'Multiple Disabilities',
+    'Developmental Delay',
+    'Hearing Impairment',
+    'Visual Impairment',
+    'Orthopedic Impairment',
+    'Traumatic Brain Injury',
+    'Deaf-Blindness',
+  ]
 
   const goalAreas = [
     { id: 'reading', name: 'Reading' },
@@ -84,36 +109,39 @@ export default function BatchIEPUpdatesPage() {
 
   const handleShowDemo = () => {
     setReportingPeriod('Quarter 2')
-    setGradeLevel('Elementary (K-5)')
+    setGradeLevel('5th Grade')
     setToneStyle('professional')
-    setNumberOfStudents(3)
-    setStudentGoals([
+    setNumberOfStudents(2)
+    setStudentData([
       { 
-        identifier: 'Student A', 
+        identifier: 'Michael C.', 
+        disabilityCategory: 'Specific Learning Disability',
         goalArea: 'reading',
-        annualGoal: 'By the end of the IEP year, student will read grade-level text with 95% accuracy and answer comprehension questions with 80% accuracy.',
-        baseline: 'Currently reading at DRA level 18 (beginning 2nd grade) with 85% accuracy. Comprehension at 60%.',
-        currentLevel: 'Now reading at DRA level 24 (end of 2nd grade) with 90% accuracy. Comprehension at 72%.',
-        interventions: 'Wilson Reading System 4x/week, small group instruction, graphic organizers for comprehension',
-        progress: 'progressing'
+        annualGoal: 'Michael will read grade-level passages with 90% accuracy and answer comprehension questions with 80% accuracy by the end of the IEP period.',
+        baseline: 'At the start of the IEP period, reading skills at the 3rd grade level with 75% accuracy in word recognition and decoding. Comprehension at 55% accuracy on grade-level text.',
+        currentLevel: 'Currently reading 4th grade level passages with 85% accuracy. Comprehension: 70% on literal questions, 60% on inferential questions.',
+        percentGoalAchieved: '65',
+        interventions: 'Daily small group reading instruction with special education teacher, Wilson Reading System',
+        accommodations: 'Graphic organizers for comprehension, audiobook access, extended time for reading assignments, preferential seating',
+        progress: 'progressing',
+        recommendations: 'Continue current goal and supports. Introduce visualization and mental imagery strategies for inferential comprehension. Gradually increase text complexity.',
+        nextSteps: 'Implement visualization strategies in daily instruction. Collaborate with general ed teacher on complex texts. Schedule progress review in 6 weeks.',
+        nextReviewDate: '2025-03-15'
       },
       { 
-        identifier: 'Student B', 
+        identifier: 'Sarah M.', 
+        disabilityCategory: 'Autism',
         goalArea: 'behavior',
-        annualGoal: 'Student will use appropriate coping strategies when frustrated, reducing classroom outbursts from 5x/day to 1x/day or less.',
-        baseline: 'Averaging 5 outbursts per day, leaving classroom 2-3 times daily, physical aggression 1-2x weekly.',
-        currentLevel: 'Now averaging 2 outbursts per day, leaving classroom 1x daily, no physical aggression this quarter.',
-        interventions: 'Check-in/check-out, calm corner access, social skills group 2x/week, behavior contract',
-        progress: 'progressing'
-      },
-      { 
-        identifier: 'Student C', 
-        goalArea: 'math',
-        annualGoal: 'Student will solve 2-digit addition and subtraction problems with regrouping with 85% accuracy.',
-        baseline: 'Solving 2-digit addition without regrouping at 70% accuracy. Cannot yet regroup.',
-        currentLevel: 'Now solving 2-digit addition WITH regrouping at 65% accuracy. Subtraction with regrouping at 40%.',
-        interventions: 'Touch Math, manipulatives, daily fact practice, 1:1 instruction 3x/week',
-        progress: 'slow-progress'
+        annualGoal: 'Sarah will use appropriate coping strategies when frustrated, reducing classroom outbursts from 5x/day to 1x/day or less.',
+        baseline: 'At baseline, averaging 5 outbursts per day, leaving classroom 2-3 times daily, physical aggression 1-2x weekly.',
+        currentLevel: 'Currently averaging 2 outbursts per day, leaving classroom 1x daily, no physical aggression this quarter.',
+        percentGoalAchieved: '75',
+        interventions: 'Check-in/check-out system, social skills group 2x/week, behavior contract with daily feedback',
+        accommodations: 'Calm corner access, sensory breaks every 45 minutes, visual schedule, advance notice of transitions',
+        progress: 'progressing',
+        recommendations: 'Continue current supports. Begin fading check-in frequency. Teach self-monitoring skills.',
+        nextSteps: 'Train Sarah on self-monitoring checklist. Reduce check-ins from 4x to 3x daily. Parent meeting to review home strategies.',
+        nextReviewDate: '2025-03-01'
       },
     ])
     setGeneratedUpdates([])
@@ -123,17 +151,17 @@ export default function BatchIEPUpdatesPage() {
 
   const handleResetDemo = () => {
     setReportingPeriod('Quarter 2')
-    setGradeLevel('Elementary (K-5)')
+    setGradeLevel('5th Grade')
     setToneStyle('professional')
     setNumberOfStudents(5)
-    setStudentGoals([])
+    setStudentData([])
     setGeneratedUpdates([])
     setActiveTab('input')
     setShowDemo(false)
   }
 
-  const updateStudentGoal = (index, field, value) => {
-    setStudentGoals(prev => {
+  const updateStudentData = (index, field, value) => {
+    setStudentData(prev => {
       const updated = [...prev]
       updated[index] = { ...updated[index], [field]: value }
       return updated
@@ -141,9 +169,8 @@ export default function BatchIEPUpdatesPage() {
   }
 
   const handleGenerate = async () => {
-    // Validate
-    const hasGoals = studentGoals.some(s => s.annualGoal && s.currentLevel)
-    if (!hasGoals) {
+    const hasData = studentData.some(s => s.annualGoal && s.currentLevel)
+    if (!hasData) {
       alert('Please enter at least one student with an annual goal and current level')
       return
     }
@@ -155,11 +182,10 @@ export default function BatchIEPUpdatesPage() {
     try {
       const updates = []
       
-      for (let i = 0; i < studentGoals.length; i++) {
+      for (let i = 0; i < studentData.length; i++) {
         setCurrentStudent(i + 1)
         
-        const student = studentGoals[i]
-        // Skip students with no goal info
+        const student = studentData[i]
         if (!student.annualGoal || !student.currentLevel) {
           updates.push({
             identifier: student.identifier,
@@ -176,13 +202,20 @@ export default function BatchIEPUpdatesPage() {
             reportingPeriod,
             gradeLevel,
             toneStyle,
+            reportDate,
             studentIdentifier: student.identifier,
+            disabilityCategory: student.disabilityCategory,
             goalArea: student.goalArea,
             annualGoal: student.annualGoal,
             baseline: student.baseline,
             currentLevel: student.currentLevel,
+            percentGoalAchieved: student.percentGoalAchieved,
             interventions: student.interventions,
+            accommodations: student.accommodations,
             progress: student.progress,
+            recommendations: student.recommendations,
+            nextSteps: student.nextSteps,
+            nextReviewDate: student.nextReviewDate,
           }),
         })
 
@@ -225,17 +258,11 @@ export default function BatchIEPUpdatesPage() {
 
     try {
       let combinedContent = `IEP PROGRESS UPDATES - ${reportingPeriod}\n`
-      combinedContent += `Grade Level: ${gradeLevel}\n`
-      combinedContent += `Generated: ${new Date().toLocaleDateString()}\n`
+      combinedContent += `Report Date: ${reportDate}\n`
       combinedContent += `${'='.repeat(60)}\n\n`
 
       generatedUpdates.forEach((item, index) => {
         if (!item.skipped && !item.error) {
-          const goalAreaName = goalAreas.find(g => g.id === item.goalArea)?.name || item.goalArea
-          const progressName = progressOptions.find(p => p.id === item.progress)?.name || item.progress
-          combinedContent += `--- ${item.identifier} ---\n`
-          combinedContent += `Goal Area: ${goalAreaName}\n`
-          combinedContent += `Progress Status: ${progressName}\n\n`
           combinedContent += editedUpdates[index] || item.update
           combinedContent += `\n\n${'='.repeat(60)}\n\n`
         }
@@ -269,6 +296,41 @@ export default function BatchIEPUpdatesPage() {
     setExporting(false)
   }
 
+  const handleExportOne = async (index) => {
+    const item = generatedUpdates[index]
+    if (!item || item.skipped || item.error) return
+    
+    setExporting(true)
+    try {
+      const content = editedUpdates[index] || item.update
+
+      const response = await fetch('/api/export-docx', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: `IEP Update - ${item.identifier}`,
+          content: content,
+          toolName: 'IEP Progress Update'
+        }),
+      })
+
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `IEP_Update_${item.identifier.replace(/\s+/g, '_')}.docx`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
+      }
+    } catch (error) {
+      alert('Failed to export')
+    }
+    setExporting(false)
+  }
+
   const handleCopyOne = (index) => {
     navigator.clipboard.writeText(editedUpdates[index] || generatedUpdates[index]?.update)
     alert('Update copied to clipboard!')
@@ -278,9 +340,8 @@ export default function BatchIEPUpdatesPage() {
     let combinedContent = ''
     generatedUpdates.forEach((item, index) => {
       if (!item.skipped && !item.error) {
-        combinedContent += `--- ${item.identifier} ---\n\n`
         combinedContent += editedUpdates[index] || item.update
-        combinedContent += `\n\n---\n\n`
+        combinedContent += `\n\n${'='.repeat(60)}\n\n`
       }
     })
     navigator.clipboard.writeText(combinedContent)
@@ -328,52 +389,44 @@ export default function BatchIEPUpdatesPage() {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-3xl">📋</span>
-                <h1 className="text-2xl font-semibold text-gray-800">Batch IEP Updates</h1>
+                <h1 className="text-2xl font-semibold text-gray-800">Batch IEP Progress Reports</h1>
                 <span className="bg-purple-100 text-purple-700 text-xs font-medium px-2 py-1 rounded-full">TIME SAVER</span>
               </div>
-              <p className="text-gray-500">Generate IDEA-compliant progress updates for your entire caseload. Input goal data, get professional narratives.</p>
+              <p className="text-gray-500">Generate complete IDEA-compliant progress monitoring reports for your entire caseload.</p>
+            </div>
+            <div className="flex gap-2">
+              {!showDemo ? (
+                <button onClick={handleShowDemo} className="flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium">
+                  <span>✨</span> See Demo
+                </button>
+              ) : (
+                <button onClick={handleResetDemo} className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">
+                  <span>↺</span> Reset
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Privacy Notice */}
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
-            <div className="flex items-start gap-3">
-              <span className="text-green-600 text-xl">🔒</span>
-              <div>
-                <h3 className="text-green-800 font-medium">Privacy-First Design</h3>
-                <p className="text-green-700 text-sm">Student names and data are never stored. Use identifiers like "Student A". Updates use "[Student Name]" placeholders - add real names after downloading to your secure IEP system.</p>
+          {/* Privacy & Compliance Notices */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <span className="text-green-600 text-xl">🔒</span>
+                <div>
+                  <h3 className="text-green-800 font-medium">Privacy-First</h3>
+                  <p className="text-green-700 text-sm">Use identifiers like "Student A". Updates use "[Student Name]" placeholders for FERPA compliance.</p>
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Compliance Notice */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-            <div className="flex items-start gap-3">
-              <span className="text-blue-600 text-xl">⚖️</span>
-              <div>
-                <h3 className="text-blue-800 font-medium">IDEA Compliance</h3>
-                <p className="text-blue-700 text-sm">Generated updates include required elements: progress toward annual goal, comparison to baseline, and projected timeline. Always review and verify data accuracy before including in official IEP documents.</p>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <span className="text-blue-600 text-xl">⚖️</span>
+                <div>
+                  <h3 className="text-blue-800 font-medium">IDEA Compliant</h3>
+                  <p className="text-blue-700 text-sm">Reports include all required elements: progress toward goal, baseline comparison, data analysis, recommendations.</p>
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* See Demo Button */}
-          <div className="flex gap-3">
-            {!showDemo ? (
-              <button
-                onClick={handleShowDemo}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium"
-              >
-                <span>✨</span> See Demo
-              </button>
-            ) : (
-              <button
-                onClick={handleResetDemo}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
-              >
-                <span>↺</span> Reset Demo
-              </button>
-            )}
           </div>
         </div>
 
@@ -382,20 +435,16 @@ export default function BatchIEPUpdatesPage() {
           <button
             onClick={() => setActiveTab('input')}
             className={`px-6 py-3 rounded-xl font-medium transition-all ${
-              activeTab === 'input'
-                ? 'bg-purple-600 text-white'
-                : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300'
+              activeTab === 'input' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300'
             }`}
           >
-            1. Enter Goal Data
+            1. Enter Student Data
           </button>
           <button
             onClick={() => setActiveTab('review')}
             disabled={generatedUpdates.length === 0}
             className={`px-6 py-3 rounded-xl font-medium transition-all ${
-              activeTab === 'review'
-                ? 'bg-purple-600 text-white'
-                : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 disabled:opacity-50 disabled:cursor-not-allowed'
+              activeTab === 'review' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 disabled:opacity-50'
             }`}
           >
             2. Review & Export {completedUpdates > 0 && `(${completedUpdates})`}
@@ -408,7 +457,16 @@ export default function BatchIEPUpdatesPage() {
             {/* Settings */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Report Settings</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">How Many Students?</label>
+                  <select value={numberOfStudents} onChange={(e) => setNumberOfStudents(parseInt(e.target.value))}
+                    className="w-full px-4 py-3 bg-purple-50 border-2 border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 font-medium">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30].map(n => (
+                      <option key={n} value={n}>{n} student{n !== 1 ? 's' : ''}</option>
+                    ))}
+                  </select>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Reporting Period</label>
                   <select value={reportingPeriod} onChange={(e) => setReportingPeriod(e.target.value)}
@@ -422,12 +480,15 @@ export default function BatchIEPUpdatesPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
                   <select value={gradeLevel} onChange={(e) => setGradeLevel(e.target.value)}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700">
-                    <option value="Early Childhood (Pre-K)">Early Childhood (Pre-K)</option>
-                    <option value="Elementary (K-5)">Elementary (K-5)</option>
-                    <option value="Middle School (6-8)">Middle School (6-8)</option>
-                    <option value="High School (9-12)">High School (9-12)</option>
-                    <option value="Transition (18-22)">Transition (18-22)</option>
+                    {['Pre-K', 'Kindergarten', '1st Grade', '2nd Grade', '3rd Grade', '4th Grade', '5th Grade', '6th Grade', '7th Grade', '8th Grade', '9th Grade', '10th Grade', '11th Grade', '12th Grade', 'Transition (18-22)'].map(g => (
+                      <option key={g} value={g}>{g}</option>
+                    ))}
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Report Date</label>
+                  <input type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Writing Style</label>
@@ -438,55 +499,39 @@ export default function BatchIEPUpdatesPage() {
                     <option value="detailed">Detailed & Technical</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Number of Goals</label>
-                  <select value={numberOfStudents} onChange={(e) => setNumberOfStudents(parseInt(e.target.value))}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700">
-                    {[5, 10, 15, 20, 25, 30].map(n => (
-                      <option key={n} value={n}>{n} goals</option>
-                    ))}
-                  </select>
-                </div>
               </div>
             </div>
 
-            {/* Student Goals */}
+            {/* Student Data Entry */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-800">Goal Progress Data</h2>
-                  <p className="text-sm text-gray-500">Enter each goal's information - can be multiple goals per student</p>
+                  <h2 className="text-lg font-semibold text-gray-800">Student Progress Data</h2>
+                  <p className="text-sm text-gray-500">Enter each student's IEP goal and progress information</p>
                 </div>
+                <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-lg text-sm font-medium">
+                  {numberOfStudents} student{numberOfStudents !== 1 ? 's' : ''}
+                </span>
               </div>
 
-              <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2">
-                {studentGoals.map((student, index) => (
-                  <div key={index} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    {/* Header Row */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="bg-purple-100 text-purple-700 font-medium px-3 py-1 rounded-lg text-sm">
+              <div className="space-y-6 max-h-[700px] overflow-y-auto pr-2">
+                {studentData.map((student, index) => (
+                  <div key={index} className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                    {/* Student Header */}
+                    <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+                      <span className="bg-purple-600 text-white font-bold px-3 py-1 rounded-lg">
                         {index + 1}
                       </span>
                       <input
-                        type="text"
                         value={student.identifier}
-                        onChange={(e) => updateStudentGoal(index, 'identifier', e.target.value)}
-                        placeholder="Student identifier"
-                        className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        onChange={(e) => updateStudentData(index, 'identifier', e.target.value)}
+                        placeholder="Student identifier (e.g., Student A)"
+                        className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                       <select
-                        value={student.goalArea}
-                        onChange={(e) => updateStudentGoal(index, 'goalArea', e.target.value)}
-                        className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      >
-                        {goalAreas.map(area => (
-                          <option key={area.id} value={area.id}>{area.name}</option>
-                        ))}
-                      </select>
-                      <select
                         value={student.progress}
-                        onChange={(e) => updateStudentGoal(index, 'progress', e.target.value)}
-                        className={`px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${getProgressBadgeColor(student.progress)}`}
+                        onChange={(e) => updateStudentData(index, 'progress', e.target.value)}
+                        className={`px-3 py-2 rounded-lg font-medium ${getProgressBadgeColor(student.progress)}`}
                       >
                         {progressOptions.map(opt => (
                           <option key={opt.id} value={opt.id}>{opt.name}</option>
@@ -494,48 +539,138 @@ export default function BatchIEPUpdatesPage() {
                       </select>
                     </div>
 
-                    {/* Goal Details */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Row 1: Basic Info */}
+                    <div className="grid grid-cols-3 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Annual Goal</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Disability Category</label>
+                        <select
+                          value={student.disabilityCategory}
+                          onChange={(e) => updateStudentData(index, 'disabilityCategory', e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        >
+                          {disabilityCategories.map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Goal Area</label>
+                        <select
+                          value={student.goalArea}
+                          onChange={(e) => updateStudentData(index, 'goalArea', e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        >
+                          {goalAreas.map(area => (
+                            <option key={area.id} value={area.id}>{area.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">% Goal Achieved</label>
+                        <input
+                          type="text"
+                          value={student.percentGoalAchieved}
+                          onChange={(e) => updateStudentData(index, 'percentGoalAchieved', e.target.value)}
+                          placeholder="e.g., 65%"
+                          className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Row 2: Goal & Performance */}
+                    <div className="grid grid-cols-1 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Annual Goal *</label>
                         <textarea
                           value={student.annualGoal}
-                          onChange={(e) => updateStudentGoal(index, 'annualGoal', e.target.value)}
-                          placeholder="By the end of the IEP year, student will..."
-                          rows={3}
+                          onChange={(e) => updateStudentData(index, 'annualGoal', e.target.value)}
+                          placeholder="The measurable annual IEP goal..."
+                          rows={2}
                           className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                         />
                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Baseline (Start of IEP)</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Baseline Performance</label>
                         <textarea
                           value={student.baseline}
-                          onChange={(e) => updateStudentGoal(index, 'baseline', e.target.value)}
-                          placeholder="At the start of the IEP, student was..."
+                          onChange={(e) => updateStudentData(index, 'baseline', e.target.value)}
+                          placeholder="Performance at the start of the IEP period..."
                           rows={3}
                           className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Current Level (This Period)</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Current Performance *</label>
                         <textarea
                           value={student.currentLevel}
-                          onChange={(e) => updateStudentGoal(index, 'currentLevel', e.target.value)}
-                          placeholder="Currently, student is performing at..."
+                          onChange={(e) => updateStudentData(index, 'currentLevel', e.target.value)}
+                          placeholder="Current performance level with data..."
                           rows={3}
                           className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                         />
                       </div>
+                    </div>
+
+                    {/* Row 3: Supports */}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
                         <label className="block text-xs font-medium text-gray-600 mb-1">Interventions/Services</label>
                         <textarea
                           value={student.interventions}
-                          onChange={(e) => updateStudentGoal(index, 'interventions', e.target.value)}
-                          placeholder="Services provided: e.g., Wilson Reading 4x/week, OT 1x/week..."
-                          rows={3}
+                          onChange={(e) => updateStudentData(index, 'interventions', e.target.value)}
+                          placeholder="e.g., Wilson Reading 4x/week, small group instruction..."
+                          rows={2}
                           className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                         />
                       </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Accommodations</label>
+                        <textarea
+                          value={student.accommodations}
+                          onChange={(e) => updateStudentData(index, 'accommodations', e.target.value)}
+                          placeholder="e.g., Extended time, graphic organizers, preferential seating..."
+                          rows={2}
+                          className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Row 4: Recommendations & Next Steps */}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Recommendations</label>
+                        <textarea
+                          value={student.recommendations}
+                          onChange={(e) => updateStudentData(index, 'recommendations', e.target.value)}
+                          placeholder="Recommendations for continued progress..."
+                          rows={2}
+                          className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Next Steps</label>
+                        <textarea
+                          value={student.nextSteps}
+                          onChange={(e) => updateStudentData(index, 'nextSteps', e.target.value)}
+                          placeholder="Action items with responsible parties..."
+                          rows={2}
+                          className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Next Review Date */}
+                    <div className="flex items-center gap-4">
+                      <label className="text-xs font-medium text-gray-600">Next Review Date:</label>
+                      <input
+                        type="date"
+                        value={student.nextReviewDate}
+                        onChange={(e) => updateStudentData(index, 'nextReviewDate', e.target.value)}
+                        className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
                     </div>
                   </div>
                 ))}
@@ -551,12 +686,12 @@ export default function BatchIEPUpdatesPage() {
               {generating ? (
                 <>
                   <span className="animate-spin">⏳</span>
-                  Generating update {currentStudent} of {numberOfStudents}...
+                  Generating report {currentStudent} of {numberOfStudents}...
                 </>
               ) : (
                 <>
                   <span>✨</span>
-                  Generate All Progress Updates
+                  Generate All Progress Reports
                 </>
               )}
             </button>
@@ -585,21 +720,14 @@ export default function BatchIEPUpdatesPage() {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-800">Generated Progress Updates</h2>
-                  <p className="text-gray-500 text-sm">{completedUpdates} updates ready • Review for accuracy before adding to IEP system</p>
+                  <h2 className="text-lg font-semibold text-gray-800">Generated Progress Reports</h2>
+                  <p className="text-gray-500 text-sm">{completedUpdates} reports ready • Review before adding to IEP system</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <button
-                    onClick={handleCopyAll}
-                    className="px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-lg font-medium transition-colors"
-                  >
+                  <button onClick={handleCopyAll} className="px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-lg font-medium transition-colors">
                     📋 Copy All
                   </button>
-                  <button
-                    onClick={handleExportAll}
-                    disabled={exporting}
-                    className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white rounded-lg font-medium transition-colors"
-                  >
+                  <button onClick={handleExportAll} disabled={exporting} className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white rounded-lg font-medium transition-colors">
                     {exporting ? 'Exporting...' : '📄 Export All (.docx)'}
                   </button>
                 </div>
@@ -610,8 +738,8 @@ export default function BatchIEPUpdatesPage() {
             <div className="grid grid-cols-4 gap-6">
               {/* Update List */}
               <div className="col-span-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-                <h3 className="font-medium text-gray-700 mb-3">Goals</h3>
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                <h3 className="font-medium text-gray-700 mb-3">Students</h3>
+                <div className="space-y-2 max-h-[500px] overflow-y-auto">
                   {generatedUpdates.map((item, index) => (
                     <button
                       key={index}
@@ -633,8 +761,6 @@ export default function BatchIEPUpdatesPage() {
                           </span>
                         </div>
                       )}
-                      {item.skipped && <span className="text-xs">(skipped)</span>}
-                      {item.error && <span className="text-xs text-red-500">(error)</span>}
                     </button>
                   ))}
                 </div>
@@ -644,26 +770,21 @@ export default function BatchIEPUpdatesPage() {
               <div className="col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="font-medium text-gray-800">
-                      {generatedUpdates[selectedUpdate]?.identifier}
-                    </h3>
+                    <h3 className="font-medium text-gray-800">{generatedUpdates[selectedUpdate]?.identifier}</h3>
                     {generatedUpdates[selectedUpdate] && !generatedUpdates[selectedUpdate].skipped && (
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-gray-500">
-                          {goalAreas.find(g => g.id === generatedUpdates[selectedUpdate]?.goalArea)?.name}
-                        </span>
-                        <span className={`text-xs px-2 py-0.5 rounded ${getProgressBadgeColor(generatedUpdates[selectedUpdate]?.progress)}`}>
-                          {progressOptions.find(p => p.id === generatedUpdates[selectedUpdate]?.progress)?.name}
-                        </span>
-                      </div>
+                      <span className={`text-xs px-2 py-0.5 rounded ${getProgressBadgeColor(generatedUpdates[selectedUpdate]?.progress)}`}>
+                        {progressOptions.find(p => p.id === generatedUpdates[selectedUpdate]?.progress)?.name}
+                      </span>
                     )}
                   </div>
-                  <button
-                    onClick={() => handleCopyOne(selectedUpdate)}
-                    className="px-3 py-1 text-purple-600 hover:bg-purple-50 rounded-lg text-sm font-medium transition-colors"
-                  >
-                    📋 Copy
-                  </button>
+                  <div className="flex gap-2">
+                    <button onClick={() => handleCopyOne(selectedUpdate)} className="px-3 py-1 text-purple-600 hover:bg-purple-50 rounded-lg text-sm font-medium">
+                      📋 Copy
+                    </button>
+                    <button onClick={() => handleExportOne(selectedUpdate)} disabled={exporting} className="px-3 py-1 text-purple-600 hover:bg-purple-50 rounded-lg text-sm font-medium">
+                      📄 Export
+                    </button>
+                  </div>
                 </div>
                 <textarea
                   value={editedUpdates[selectedUpdate] || ''}
@@ -672,21 +793,17 @@ export default function BatchIEPUpdatesPage() {
                     updated[selectedUpdate] = e.target.value
                     setEditedUpdates(updated)
                   }}
-                  rows={14}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 resize-none"
+                  rows={20}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 resize-none font-mono text-sm"
                 />
                 <p className="text-xs text-gray-500 mt-2">
-                  ⚠️ Always verify data accuracy before including in official IEP documents. Replace "[Student Name]" with actual name in your secure system.
+                  ⚠️ Always verify accuracy before including in official IEP documents. Replace "[Student Name]" with actual name in your secure system.
                 </p>
               </div>
             </div>
 
-            {/* Back Button */}
-            <button
-              onClick={() => setActiveTab('input')}
-              className="text-purple-600 hover:text-purple-700 font-medium"
-            >
-              ← Back to Goal Data
+            <button onClick={() => setActiveTab('input')} className="text-purple-600 hover:text-purple-700 font-medium">
+              ← Back to Student Data
             </button>
           </div>
         )}

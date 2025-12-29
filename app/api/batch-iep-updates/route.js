@@ -1,8 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const anthropic = new Anthropic();
 
 export async function POST(request) {
   try {
@@ -10,13 +8,20 @@ export async function POST(request) {
       reportingPeriod,
       gradeLevel,
       toneStyle,
+      reportDate,
       studentIdentifier,
+      disabilityCategory,
       goalArea,
       annualGoal,
       baseline,
       currentLevel,
+      percentGoalAchieved,
       interventions,
+      accommodations,
       progress,
+      recommendations,
+      nextSteps,
+      nextReviewDate,
     } = await request.json();
 
     if (!annualGoal || !currentLevel) {
@@ -33,74 +38,124 @@ export async function POST(request) {
     };
 
     const progressDescriptions = {
-      'mastered': 'The student has MASTERED this goal and met the criteria.',
-      'progressing': 'The student is making ADEQUATE PROGRESS and is on track to meet the annual goal.',
-      'slow-progress': 'The student is making SOME PROGRESS but slower than expected. May need intervention adjustment.',
-      'minimal': 'The student is making MINIMAL PROGRESS. Significant concern about meeting the annual goal.',
-      'regression': 'The student has shown REGRESSION and is performing below previous levels.',
-      'not-addressed': 'This goal was NOT ADDRESSED during this reporting period due to [circumstances].',
+      'mastered': 'MASTERED - The student has met the goal criteria.',
+      'progressing': 'PROGRESSING - The student is making meaningful progress toward the annual goal.',
+      'slow-progress': 'LIMITED PROGRESS - The student is making some progress but slower than expected.',
+      'minimal': 'MINIMAL PROGRESS - Significant concern about meeting the annual goal.',
+      'regression': 'REGRESSION - The student is performing below previous levels.',
+      'not-addressed': 'NOT ADDRESSED - This goal was not addressed during this reporting period.',
     };
 
-    const goalAreaContext = {
-      'reading': 'reading and literacy skills',
-      'writing': 'written expression skills',
-      'math': 'mathematics skills',
-      'behavior': 'behavior and social-emotional skills',
-      'speech': 'speech and language skills',
-      'motor': 'fine and/or gross motor skills',
-      'adaptive': 'adaptive and daily living skills',
-      'transition': 'transition and vocational skills',
+    const goalAreaLabels = {
+      'reading': 'Reading',
+      'writing': 'Writing',
+      'math': 'Mathematics',
+      'behavior': 'Behavior/Social-Emotional',
+      'speech': 'Speech/Language',
+      'motor': 'Fine/Gross Motor',
+      'adaptive': 'Adaptive/Life Skills',
+      'transition': 'Transition',
     };
 
-    const prompt = `You are an experienced special education teacher writing an IEP progress update that complies with IDEA requirements.
+    const prompt = `You are an experienced special education teacher writing an IEP Progress Monitoring Report that complies with IDEA requirements.
 
 **IMPORTANT PRIVACY INSTRUCTION:**
-- Use "[Student Name]" as a placeholder - NEVER invent a name
+- Use "[Student Name]" as a placeholder throughout - NEVER invent a name
 - This is a privacy-first system for FERPA compliance
 
 **REPORT SETTINGS:**
 - Reporting Period: ${reportingPeriod}
 - Grade Level: ${gradeLevel}
-- Goal Area: ${goalAreaContext[goalArea] || goalArea}
+- Report Date: ${reportDate || '[Current Date]'}
 - Writing Style: ${toneDescriptions[toneStyle] || toneDescriptions.professional}
 
-**PROGRESS STATUS:** ${progressDescriptions[progress] || progressDescriptions.progressing}
+**STUDENT DATA PROVIDED:**
+- Student Identifier: ${studentIdentifier}
+- Disability Category: ${disabilityCategory || 'Not specified'}
+- Goal Area: ${goalAreaLabels[goalArea] || goalArea}
+- Annual Goal: ${annualGoal}
+- Baseline Performance: ${baseline || 'Not specified'}
+- Current Performance: ${currentLevel}
+- Progress Status: ${progressDescriptions[progress] || progressDescriptions.progressing}
+- Percentage of Goal Achieved: ${percentGoalAchieved || 'Not specified'}%
+- Interventions/Services: ${interventions || 'Not specified'}
+- Accommodations: ${accommodations || 'Not specified'}
+- Teacher Recommendations: ${recommendations || 'Not specified'}
+- Next Steps: ${nextSteps || 'Not specified'}
+- Next Review Date: ${nextReviewDate || '[Date]'}
 
-**GOAL DATA PROVIDED:**
+**GENERATE A COMPLETE IEP PROGRESS MONITORING REPORT with the following sections:**
 
-Annual Goal: ${annualGoal}
+# PROGRESS MONITORING REPORT
 
-Baseline (Start of IEP): ${baseline || 'Not specified'}
+## Student Information
+- Student Name: [Student Name]
+- Grade Level: ${gradeLevel}
+- Disability Category: ${disabilityCategory || '[Category]'}
+- IEP Goal Area: ${goalAreaLabels[goalArea] || goalArea}
+- Report Date: ${reportDate || '[Current Date]'}
+- Reporting Period: ${reportingPeriod}
 
-Current Performance Level: ${currentLevel}
+## Current Goal
+[Write the annual goal clearly]
 
-Interventions/Services: ${interventions || 'Not specified'}
+## Progress Summary
 
-**WRITE THE PROGRESS UPDATE:**
+### Baseline Performance:
+[Describe where the student started at the beginning of the IEP period using the baseline data provided]
 
-Requirements for IDEA Compliance:
-1. Start with "[Student Name]" - never invent names
-2. State the annual goal clearly
-3. Compare current performance to baseline (show growth or lack thereof)
-4. Include specific data/metrics from the information provided
-5. State whether student is on track to meet the annual goal by the end of the IEP year
-6. Mention interventions/services being provided
-7. If progress is slow/minimal/regression, note that the IEP team should review
-8. Keep it professional and objective (no subjective opinions)
-9. Be concise but thorough (1-2 paragraphs)
-10. End with projected timeline for goal mastery if applicable
+### Current Performance:
+[Describe the student's current performance level with specific data points]
 
-Format:
-- Write in third person ("[Student Name] has demonstrated...")
-- Use past tense for what has occurred, present tense for current status
-- Include measurable data points when provided
-- Be factual and evidence-based
+### Progress Toward Goal:
+**${progressDescriptions[progress]?.split(' - ')[0] || 'PROGRESSING'}** - [Explain the progress status]
 
-Write the progress update now:`;
+### Percentage of Goal Achieved:
+Approximately **${percentGoalAchieved || '[X]'}%** of the annual goal has been achieved based on current performance data.
+
+## Data Analysis
+[Write 2-3 paragraphs analyzing the student's progress data:
+- What patterns do you see in the data?
+- What areas show strength vs. need continued focus?
+- What does the progress trajectory suggest about meeting the annual goal?]
+
+## Supports & Accommodations in Place
+[List the current interventions and accommodations as bullet points]
+
+## Recommendations
+[Based on the data, provide 2-3 specific recommendations with rationale]
+
+## Next Steps
+[Number each action item with responsible party and timeline:
+1. **Instructional Team:** [Action]
+2. **General Education Teacher:** [Action]
+3. **Family:** [Action]
+4. **Progress Review:** [When]
+5. **Data Collection:** [What/How]]
+
+## Next Formal Review Date: ${nextReviewDate || '[Date]'}
+
+---
+
+**Prepared by:** [Name, Title]
+**Date:** ${reportDate || '[Current Date]'}
+
+---
+*This progress report demonstrates that [Student Name] is making educationally meaningful progress toward IEP goals. [Add closing statement based on progress status].*
+
+**IMPORTANT FORMATTING:**
+- Use markdown formatting (## for headers, **bold** for emphasis, - for bullet points)
+- Include specific data points from the information provided
+- Be objective and evidence-based
+- Write in third person using "[Student Name]"
+- Make sure all sections flow professionally
+- If information is missing, use appropriate placeholders like [specify] or [date]
+
+Generate the complete progress report now:`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 600,
+      max_tokens: 2000,
       messages: [{ role: "user", content: prompt }],
     });
 

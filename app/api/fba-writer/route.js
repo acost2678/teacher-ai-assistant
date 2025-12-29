@@ -1,8 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const anthropic = new Anthropic();
 
 export async function POST(request) {
   try {
@@ -11,39 +9,56 @@ export async function POST(request) {
       gradeLevel,
       setting,
       disabilityCategory,
-      targetBehavior,
-      behaviorDescription,
+      studentStrengths,
+      studentInterests,
+      whatWorks,
+      reinforcers,
+      problemBehaviors,
+      slowTriggers,
+      slowTriggersOther,
+      fastTriggers,
       abcObservations,
-      settingEvents,
+      primaryFunction,
+      secondaryFunction,
+      functionNotes,
       additionalContext,
-      frequency,
-      duration,
-      intensity,
-      peakTimes,
-      peakSettings,
+      extractedDocumentText,
       includeRecommendations,
     } = await request.json();
 
-    if (!targetBehavior || !abcObservations || abcObservations.length === 0) {
+    if (!problemBehaviors || problemBehaviors.length === 0) {
       return Response.json(
-        { error: "Target behavior and ABC observations are required" },
+        { error: "At least one problem behavior is required" },
         { status: 400 }
       );
     }
 
-    // Format ABC observations for the prompt
-    const abcFormatted = abcObservations.map((obs, i) => 
-      `Observation ${i + 1}${obs.date ? ` (${obs.date}` : ''}${obs.time ? `, ${obs.time}` : ''}${obs.setting ? `, ${obs.setting}` : ''}${obs.date ? ')' : ''}:
-  - Antecedent: ${obs.antecedent}
-  - Behavior: ${obs.behavior}
-  - Consequence: ${obs.consequence}`
+    // Format problem behaviors table
+    const behaviorsFormatted = problemBehaviors.map((pb, i) => 
+      `Behavior ${i + 1}: ${pb.behavior}
+  - Definition: ${pb.definition || 'Not specified'}
+  - Frequency: ${pb.frequency || 'Not specified'}
+  - Duration: ${pb.duration || 'Not specified'}
+  - Intensity: ${pb.intensity || 'moderate'}`
     ).join('\n\n');
 
-    const prompt = `You are an experienced Board Certified Behavior Analyst (BCBA) writing a Functional Behavioral Assessment (FBA). Generate a comprehensive, professional FBA document based on the data provided.
+    // Format ABC observations
+    const abcFormatted = abcObservations && abcObservations.length > 0 
+      ? abcObservations.map((obs, i) => 
+          `Observation ${i + 1}${obs.date ? ` (${obs.date}` : ''}${obs.time ? `, ${obs.time}` : ''}${obs.setting ? `, ${obs.setting}` : ''}${obs.date || obs.time || obs.setting ? ')' : ''}:
+  - Antecedent: ${obs.antecedent || 'Not recorded'}
+  - Behavior: ${obs.behavior || 'Not recorded'}
+  - Consequence: ${obs.consequence || 'Not recorded'}`
+        ).join('\n\n')
+      : 'No ABC observations provided';
+
+    const prompt = `You are an experienced Board Certified Behavior Analyst (BCBA) writing a comprehensive Functional Behavioral Assessment (FBA). Generate a professional FBA document based on the data provided.
 
 **IMPORTANT PRIVACY INSTRUCTION:**
 - Use "[Student Name]" as a placeholder throughout - NEVER invent a name
 - This is a privacy-first system for FERPA compliance
+
+---
 
 **STUDENT INFORMATION:**
 - Student Identifier: ${studentIdentifier}
@@ -51,105 +66,150 @@ export async function POST(request) {
 - Primary Setting: ${setting}
 ${disabilityCategory ? `- Disability Category: ${disabilityCategory}` : ''}
 
-**TARGET BEHAVIOR:**
-- Behavior: ${targetBehavior}
-- Description: ${behaviorDescription || 'See ABC data for behavioral descriptions'}
+**STUDENT STRENGTHS:**
+${studentStrengths || 'Not specified'}
+
+**STUDENT INTERESTS:**
+${studentInterests || 'Not specified'}
+
+**WHAT WORKS FOR THIS STUDENT:**
+${whatWorks || 'Not specified'}
+
+**EFFECTIVE REINFORCERS:**
+${reinforcers || 'Not specified'}
+
+---
+
+**PROBLEM BEHAVIORS:**
+${behaviorsFormatted}
+
+---
+
+**SETTING CONDITIONS/ANTECEDENTS:**
+
+Slow Triggers (Setting Events):
+${slowTriggers && slowTriggers.length > 0 ? slowTriggers.join(', ') : 'None specified'}
+${slowTriggersOther ? `\nAdditional: ${slowTriggersOther}` : ''}
+
+Fast Triggers (Immediate Antecedents):
+${fastTriggers || 'Not specified'}
+
+---
 
 **ABC OBSERVATION DATA:**
 ${abcFormatted}
 
-**SETTING EVENTS/ANTECEDENT CONDITIONS:**
-${settingEvents && settingEvents.length > 0 ? settingEvents.join(', ') : 'None specified'}
+---
+
+**FUNCTION HYPOTHESIS:**
+Primary Function: ${primaryFunction || 'Not specified'}
+${secondaryFunction ? `Secondary Function: ${secondaryFunction}` : ''}
+${functionNotes ? `Notes: ${functionNotes}` : ''}
+
+---
 
 **ADDITIONAL CONTEXT:**
 ${additionalContext || 'None provided'}
 
-**DATA SUMMARY:**
-- Frequency: ${frequency || 'Not specified'}
-- Duration: ${duration || 'Not specified'}
-- Intensity: ${intensity || 'Not specified'}
-- Peak Times: ${peakTimes && peakTimes.length > 0 ? peakTimes.join(', ') : 'Not specified'}
-- Peak Settings: ${peakSettings && peakSettings.length > 0 ? peakSettings.join(', ') : 'Not specified'}
-
-**GENERATE A COMPLETE FBA WITH THE FOLLOWING SECTIONS:**
-
-1. **REASON FOR REFERRAL**
-   - Brief statement of why the FBA was conducted
-
-2. **STUDENT BACKGROUND**
-   - Relevant information about the student (grade, setting, disability if applicable)
-   - Use "[Student Name]" throughout
-
-3. **TARGET BEHAVIOR DEFINITION**
-   - Operational definition that is observable and measurable
-   - Include examples and non-examples
-
-4. **DATA COLLECTION METHODS**
-   - Describe ABC observation method used
-   - Number of observations collected
-
-5. **OBSERVATION DATA SUMMARY**
-   - Summarize the ABC data patterns
-   - Include frequency, duration, intensity information
-
-6. **ANTECEDENT ANALYSIS**
-   - What triggers or precedes the behavior?
-   - Identify patterns in antecedents
-   - Include setting events
-
-7. **CONSEQUENCE ANALYSIS**
-   - What typically follows the behavior?
-   - What does the student gain or avoid?
-
-8. **HYPOTHESIS OF BEHAVIOR FUNCTION**
-   - State the hypothesized function(s): Attention, Escape/Avoidance, Access to Tangibles, or Sensory/Automatic
-   - Provide a clear hypothesis statement in this format:
-     "When [antecedent/trigger], [Student Name] engages in [behavior] in order to [function - what they get or avoid]. This hypothesis is supported by [evidence from data]."
-   - Explain the evidence supporting this hypothesis
-
-9. **SUMMARY AND CONCLUSIONS**
-   - Synthesize findings
-   - Restate the function hypothesis
-
-${includeRecommendations ? `
-10. **BEHAVIOR INTERVENTION PLAN (BIP) RECOMMENDATIONS**
-
-    **Prevention Strategies (Antecedent Modifications):**
-    - List 3-4 specific strategies to prevent the behavior from occurring
-    
-    **Replacement Behavior:**
-    - Identify a functionally equivalent replacement behavior
-    - Explain how it serves the same function as the target behavior
-    
-    **Teaching Strategies:**
-    - How will the replacement behavior be taught?
-    - Include specific skill instruction recommendations
-    
-    **Response Strategies:**
-    - How should staff respond WHEN the behavior occurs?
-    - How should staff respond when replacement behavior is used?
-    
-    **Reinforcement:**
-    - What reinforcement strategies are recommended?
-    - How will appropriate behavior be acknowledged?
-    
-    **Data Collection for BIP:**
-    - What data should be collected to monitor progress?
+${extractedDocumentText ? `
+---
+**INFORMATION FROM UPLOADED DOCUMENTS:**
+${extractedDocumentText}
+---
 ` : ''}
 
+**GENERATE A COMPLETE FBA USING THIS EXACT FORMAT:**
+
+# Functional Behavior Assessment
+
+The following information was gathered by reviewing the student's records and informal interviews with parents and staff. An FBA is a process for gathering information to maximize the efficiency of behavioral support.
+
+## Student Strengths
+
+[Write 2-3 paragraphs about the student's strengths, including:
+- What parents/family report about the student's positive qualities
+- What the student is good at
+- Positive social skills observed
+- What the student likes at school
+- What reinforcement/acknowledgment works for this student
+- Include specific examples from the data provided]
+
+## Setting Conditions/Antecedents
+
+### Slow Triggers (Setting Events):
+[Write a paragraph describing the background conditions that make behavior more likely - things that don't directly cause the behavior but "set the stage." Include items from the slow triggers list and any additional context.]
+
+### Fast Triggers (Immediate):
+[Create a bulleted list of specific situations that immediately precede/trigger the behavior. Use the fast triggers provided and any patterns from ABC data.]
+
+## Problem Behavior
+
+[Create a formatted table with these columns:]
+
+| Behavior | Definition | Frequency | Duration | Intensity |
+|----------|------------|-----------|----------|-----------|
+[Fill in each problem behavior with its details]
+
+## Maintaining Consequences (Function of the behavior)
+
+[Write 2-3 paragraphs analyzing:
+- The hypothesized function(s) of the behavior
+- Evidence supporting this hypothesis from the ABC data
+- How the behavior serves the student (what they get or avoid)
+- Note any complexity in the student's behavior patterns
+- End with a clear hypothesis statement]
+
+**Hypothesis Statement:**
+It is hypothesized that [Student Name] engages in [behaviors] to [function - what they get or avoid]. [Supporting evidence from data.]
+
+${includeRecommendations ? `
+## Replacement Behaviors
+
+(Strategies that make problem behavior irrelevant, ineffective, and inefficient)
+
+### Setting Event Strategies
+[List 4-6 specific strategies to address the slow triggers/setting events. Format as bullet points starting with action verbs.]
+
+### Predictor Strategies
+[List 4-6 specific strategies to prevent the immediate triggers. Include proactive approaches like previewing, warnings, reducing pressure.]
+
+### Teaching Strategies
+[List 4-6 specific strategies for teaching new skills and providing instruction in a way that works for this student. Include how to break down tasks, provide support, and allow for the student's needs.]
+
+### Consequence Strategies
+[List 3-4 strategies for:
+- How to respond when appropriate behavior occurs (reinforcement)
+- How to respond when replacement behavior is used
+- How to respond when problem behavior occurs
+- What to limit or provide contingently]
+` : ''}
+
+---
+
+**Assessment Conducted By:** [Name, Title]
+**Date:** [Current Date]
+
+---
+
+*This Functional Behavior Assessment provides hypotheses about the function of [Student Name]'s behavior based on available data. Recommendations should be reviewed by qualified professionals and implemented with ongoing data collection to verify effectiveness.*
+
+---
+
 **FORMATTING REQUIREMENTS:**
-- Use clear section headers
+- Use markdown formatting with ## for section headers
+- Use bullet points (- ) for lists
+- Create the Problem Behavior section as a proper table
 - Write in professional, objective language
 - Use "[Student Name]" consistently - never invent names
 - Be specific and reference the actual data provided
-- Make the function hypothesis evidence-based
-- Keep the document comprehensive but focused
+- Make all recommendations practical and implementable
+- If data is missing, note what additional information would be helpful
 
 Write the complete FBA document now:`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 4000,
+      max_tokens: 5000,
       messages: [{ role: "user", content: prompt }],
     });
 
