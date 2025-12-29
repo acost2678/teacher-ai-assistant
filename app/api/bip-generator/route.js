@@ -1,8 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const anthropic = new Anthropic();
 
 export async function POST(request) {
   try {
@@ -11,256 +9,302 @@ export async function POST(request) {
       gradeLevel,
       setting,
       disabilityCategory,
-      targetBehavior,
-      behaviorDefinition,
-      baselineData,
+      bipDate,
+      reviewDate,
+      problemBehaviors,
       primaryFunction,
-      functionExplanation,
-      replacementBehavior,
+      secondaryFunction,
+      functionHypothesis,
+      antecedents,
+      consequences,
+      replacementBehaviors,
+      antecedentStrategies,
+      teachingStrategies,
+      consequenceStrategies,
+      reinforcementPlan,
       studentStrengths,
       studentInterests,
       previousInterventions,
-      staffInvolved,
+      dataCollectionMethod,
+      monitoringFrequency,
+      goalCriteria,
+      staffResponsible,
+      trainingNeeded,
+      communicationPlan,
+      extractedDocumentText,
       includeDataSheet,
       includeCrisisPlan,
     } = await request.json();
 
-    if (!targetBehavior || !primaryFunction) {
+    if (!problemBehaviors || problemBehaviors.length === 0) {
       return Response.json(
-        { error: "Target behavior and function are required" },
+        { error: "At least one problem behavior is required" },
         { status: 400 }
       );
     }
 
-    const functionLabels = {
-      escape: "Escape/Avoidance",
-      attention: "Attention",
-      access: "Access to Tangibles",
-      sensory: "Sensory/Automatic",
-      multiple: "Multiple Functions",
-    };
+    // Format problem behaviors
+    const behaviorsFormatted = problemBehaviors.map((pb, i) => 
+      `Behavior ${i + 1}: ${pb.behavior}
+  - Definition: ${pb.definition || 'Not specified'}
+  - Baseline Frequency: ${pb.frequency || 'Not specified'}
+  - Baseline Duration: ${pb.duration || 'Not specified'}
+  - Intensity: ${pb.intensity || 'Not specified'}
+  - Latency: ${pb.latency || 'Not specified'}
+  - Settings: ${pb.settings || 'Not specified'}`
+    ).join('\n\n');
 
-    const functionStrategies = {
-      escape: {
-        prevention: [
-          "Provide choices within tasks",
-          "Break tasks into smaller, manageable chunks",
-          "Pre-teach difficult concepts",
-          "Use visual schedules and timers",
-          "Modify task difficulty or length",
-          "Provide frequent breaks built into schedule",
-        ],
-        teaching: [
-          "Teach appropriate break request",
-          "Teach help-seeking skills",
-          "Build frustration tolerance gradually",
-          "Practice coping strategies",
-        ],
-        reinforcement: [
-          "Provide breaks contingent on work completion",
-          "Praise effort and persistence",
-          "Use escape as reinforcement for appropriate behavior",
-        ],
-      },
-      attention: {
-        prevention: [
-          "Provide frequent positive attention for appropriate behavior",
-          "Schedule regular check-ins",
-          "Assign classroom jobs/helper roles",
-          "Use proximity and non-verbal cues",
-          "Teach and reinforce attention-seeking alternatives",
-        ],
-        teaching: [
-          "Teach appropriate ways to get attention",
-          "Practice waiting skills",
-          "Role-play appropriate conversation starters",
-        ],
-        reinforcement: [
-          "Provide immediate attention for replacement behavior",
-          "Use behavior-specific praise",
-          "Implement peer attention systems",
-        ],
-      },
-      access: {
-        prevention: [
-          "Provide access to preferred items/activities contingently",
-          "Use first-then boards",
-          "Create clear expectations for earning access",
-          "Offer choices of preferred items",
-        ],
-        teaching: [
-          "Teach appropriate requesting",
-          "Practice waiting and turn-taking",
-          "Teach self-management for delayed gratification",
-        ],
-        reinforcement: [
-          "Provide immediate access for appropriate requests",
-          "Use token economy tied to preferred items",
-          "Offer surprise reinforcers for sustained appropriate behavior",
-        ],
-      },
-      sensory: {
-        prevention: [
-          "Provide sensory diet throughout the day",
-          "Create sensory-friendly environment",
-          "Schedule movement breaks",
-          "Provide fidgets or sensory tools",
-          "Modify sensory input (lighting, noise)",
-        ],
-        teaching: [
-          "Teach self-regulation strategies",
-          "Identify sensory needs and preferences",
-          "Practice appropriate sensory-seeking alternatives",
-        ],
-        reinforcement: [
-          "Provide access to preferred sensory activities",
-          "Reinforce use of appropriate sensory tools",
-          "Create sensory breaks as earned reinforcement",
-        ],
-      },
-      multiple: {
-        prevention: [
-          "Address each function with targeted strategies",
-          "Create comprehensive antecedent modifications",
-          "Ensure all maintaining variables are addressed",
-        ],
-        teaching: [
-          "Teach multiple replacement behaviors for different contexts",
-          "Practice identifying own needs/triggers",
-        ],
-        reinforcement: [
-          "Match reinforcement to function in each context",
-          "Use varied reinforcement menu",
-        ],
-      },
-    };
+    // Format replacement behaviors
+    const replacementsFormatted = replacementBehaviors && replacementBehaviors.length > 0
+      ? replacementBehaviors.map((rb, i) => 
+          `Replacement ${i + 1}: ${rb.behavior}
+  - How it meets the function: ${rb.howItMeetsFunction || 'Not specified'}
+  - Teaching plan: ${rb.teachingPlan || 'Not specified'}`
+        ).join('\n\n')
+      : 'Not specified';
 
-    const strategies = functionStrategies[primaryFunction] || functionStrategies.escape;
-
-    const prompt = `You are an experienced Board Certified Behavior Analyst (BCBA) writing a Behavior Intervention Plan (BIP). Generate a comprehensive, legally-compliant BIP based on the FBA data provided.
+    const prompt = `You are an experienced Board Certified Behavior Analyst (BCBA) creating a comprehensive Behavior Intervention Plan (BIP) that meets IDEA requirements.
 
 **IMPORTANT PRIVACY INSTRUCTION:**
 - Use "[Student Name]" as a placeholder throughout - NEVER invent a name
 - This is a privacy-first system for FERPA compliance
+
+---
 
 **STUDENT INFORMATION:**
 - Student Identifier: ${studentIdentifier}
 - Grade Level: ${gradeLevel}
 - Primary Setting: ${setting}
 ${disabilityCategory ? `- Disability Category: ${disabilityCategory}` : ''}
+- BIP Date: ${bipDate || '[Date]'}
+- Review Date: ${reviewDate || '[Date]'}
 
-**FROM THE FBA:**
+**STUDENT STRENGTHS:** ${studentStrengths || 'Not specified'}
 
-Target Behavior: ${targetBehavior}
-${behaviorDefinition ? `Operational Definition: ${behaviorDefinition}` : ''}
-${baselineData ? `Baseline Data: ${baselineData}` : ''}
+**STUDENT INTERESTS/REINFORCERS:** ${studentInterests || 'Not specified'}
 
-Function of Behavior: ${functionLabels[primaryFunction]}
-${functionExplanation ? `Hypothesis Statement: ${functionExplanation}` : ''}
+---
 
-**BIP DEVELOPMENT INPUT:**
-${replacementBehavior ? `Proposed Replacement Behavior: ${replacementBehavior}` : ''}
-${studentStrengths ? `Student Strengths: ${studentStrengths}` : ''}
-${studentInterests ? `Student Interests/Motivators: ${studentInterests}` : ''}
-${previousInterventions ? `Previous Interventions Tried: ${previousInterventions}` : ''}
-${staffInvolved ? `Staff Involved: ${staffInvolved}` : ''}
+**TARGET BEHAVIOR(S) WITH BASELINE DATA:**
+${behaviorsFormatted}
 
-**FUNCTION-BASED STRATEGY SUGGESTIONS:**
-Prevention Strategies for ${functionLabels[primaryFunction]}: ${strategies.prevention.join(', ')}
-Teaching Strategies: ${strategies.teaching.join(', ')}
-Reinforcement Strategies: ${strategies.reinforcement.join(', ')}
+---
 
-**GENERATE A COMPLETE BIP WITH THESE SECTIONS:**
+**FUNCTION OF BEHAVIOR:**
+- Primary Function: ${primaryFunction || 'Not specified'}
+${secondaryFunction ? `- Secondary Function: ${secondaryFunction}` : ''}
+- Hypothesis: ${functionHypothesis || 'Not specified'}
+- Antecedents/Triggers: ${antecedents || 'Not specified'}
+- Consequences (what happens after): ${consequences || 'Not specified'}
 
-1. **STUDENT INFORMATION**
-   - Basic demographic info using [Student Name]
-   - Date of BIP
-   - Team members involved
+---
 
-2. **BEHAVIOR SUMMARY (from FBA)**
-   - Target behavior and operational definition
-   - Baseline data
-   - Function of behavior
-   - Hypothesis statement
+**REPLACEMENT BEHAVIORS:**
+${replacementsFormatted}
 
-3. **REPLACEMENT BEHAVIOR**
-   - Functionally equivalent replacement behavior
-   - Why this serves the same function
-   - Observable and measurable definition
+---
 
-4. **BEHAVIOR GOALS**
-   - Measurable goal for reducing target behavior
-   - Measurable goal for increasing replacement behavior
-   - Timeline for goals
+**INTERVENTION STRATEGIES:**
 
-5. **PREVENTION STRATEGIES (Antecedent Interventions)**
-   - Environmental modifications
-   - Curricular/instructional modifications
-   - Setting event strategies
-   - At least 4-5 specific strategies based on the function
+Antecedent Strategies:
+${antecedentStrategies || 'Not specified'}
 
-6. **TEACHING STRATEGIES (Skill Building)**
-   - How will the replacement behavior be taught?
-   - Social skill instruction
-   - Coping/self-regulation strategies
-   - Include specific teaching procedures
+Teaching Strategies:
+${teachingStrategies || 'Not specified'}
 
-7. **RESPONSE STRATEGIES**
-   - How to respond when replacement behavior is used (reinforce!)
-   - How to respond when target behavior occurs (minimize reinforcement)
-   - De-escalation procedures
-   - What NOT to do
+Consequence Strategies:
+${consequenceStrategies || 'Not specified'}
 
-8. **REINFORCEMENT PLAN**
-   - What reinforcers will be used (based on student interests)
-   - Schedule of reinforcement
-   - Token economy or point system if applicable
+Reinforcement Plan:
+${reinforcementPlan || 'Not specified'}
 
-9. **DATA COLLECTION**
-   - What data will be collected
-   - Who will collect it
-   - How often
-   - Method (frequency, duration, ABC, etc.)
+---
 
-10. **IMPLEMENTATION PLAN**
-    - Staff training needs
-    - Implementation timeline
-    - Fidelity checks
+**PREVIOUS INTERVENTIONS:** ${previousInterventions || 'Not specified'}
 
-11. **REVIEW SCHEDULE**
-    - When will the team review progress?
-    - Decision rules (when to modify)
-    - Criteria for success/fading
+---
+
+**PROGRESS MONITORING:**
+- Data Collection Method: ${dataCollectionMethod || 'Not specified'}
+- Monitoring Frequency: ${monitoringFrequency || 'Not specified'}
+- Goal/Success Criteria: ${goalCriteria || 'Not specified'}
+
+---
+
+**IMPLEMENTATION:**
+- Staff Responsible: ${staffResponsible || 'Not specified'}
+- Training Needed: ${trainingNeeded || 'Not specified'}
+- Communication Plan: ${communicationPlan || 'Not specified'}
+
+${extractedDocumentText ? `
+---
+**INFORMATION FROM UPLOADED DOCUMENTS:**
+${extractedDocumentText}
+---
+` : ''}
+
+**GENERATE A COMPLETE BIP USING THIS FORMAT:**
+
+# BEHAVIOR INTERVENTION PLAN
+
+## Student Information
+| Field | Information |
+|-------|-------------|
+| Student Name | [Student Name] |
+| Grade Level | ${gradeLevel} |
+| Primary Setting | ${setting} |
+| Disability Category | ${disabilityCategory || '[Category]'} |
+| BIP Date | ${bipDate || '[Date]'} |
+| Review Date | ${reviewDate || '[Date]'} |
+
+## Student Strengths & Interests
+[Write a paragraph about the student's strengths, positive qualities, and interests that can be used for reinforcement]
+
+## Target Behavior(s)
+
+### Behavior Definition Table
+| Behavior | Operational Definition | Baseline Frequency | Duration | Intensity |
+|----------|----------------------|-------------------|----------|-----------|
+[Fill in for each behavior]
+
+### Settings Where Behavior Occurs
+[List the settings, times, and contexts where behavior is most likely]
+
+## Function of Behavior
+
+### Hypothesis Statement
+[Write a clear hypothesis statement: "When [antecedent], [Student Name] engages in [behavior] in order to [function]. This is supported by [evidence]."]
+
+### Antecedents/Triggers
+[List specific antecedents that trigger the behavior]
+
+### Maintaining Consequences
+[What happens after the behavior that reinforces it? What does the student get or avoid?]
+
+## Replacement Behavior(s)
+
+For each replacement behavior, include:
+| Replacement Behavior | How It Meets Same Function | How It Will Be Taught |
+|---------------------|---------------------------|----------------------|
+[Fill in table]
+
+## Intervention Strategies
+
+### Antecedent Strategies (Prevention)
+[List strategies to prevent behavior from occurring - bullet points]
+
+### Teaching Strategies
+[List strategies for teaching replacement behaviors - bullet points]
+
+### Consequence Strategies
+
+**When replacement behavior occurs:**
+[List how staff should respond positively]
+
+**When problem behavior occurs:**
+[List how staff should respond - minimize reinforcement of problem behavior]
+
+### Reinforcement Plan
+[Describe the reinforcement system in detail]
+
+## Progress Monitoring
+
+### Data Collection
+- **Method:** ${dataCollectionMethod || '[Specify method]'}
+- **Frequency:** ${monitoringFrequency || '[Specify frequency]'}
+- **Responsible Party:** [Who collects data]
+
+### Goal Criteria
+${goalCriteria || '[Specify measurable goals]'}
+
+### Schedule for Measuring Effectiveness
+[Specify when progress will be reviewed and reported]
+
+## Implementation Plan
+
+### Staff Responsibilities
+[List each staff member and their specific role]
+
+### Training Requirements
+[List training needed before implementation]
+
+### Communication Plan
+[How will progress be shared with parents and team?]
 
 ${includeCrisisPlan ? `
-12. **CRISIS/SAFETY PLAN**
-    - Warning signs of escalation
-    - De-escalation procedures
-    - When to call for support
-    - Physical safety considerations
-    - Post-crisis procedures
+## Crisis/Safety Plan
+
+### Warning Signs (Precursor Behaviors)
+[List early warning signs that behavior may escalate]
+
+### De-escalation Strategies
+[List strategies to use when warning signs appear]
+
+### Crisis Response Procedures
+[Step-by-step response if behavior becomes dangerous]
+
+### Post-Crisis Procedures
+[What to do after a crisis - debriefing, documentation, return to routine]
+
+### Emergency Contacts
+[List who to contact in emergency]
 ` : ''}
 
 ${includeDataSheet ? `
-13. **DATA COLLECTION TEMPLATE**
-    - Create a simple data collection sheet format
-    - Include date, time, antecedent, behavior, consequence, duration columns
-    - Include space for notes
+## Data Collection Sheet Template
+
+**Student:** [Student Name]
+**Week of:** _____________
+**Target Behavior:** ${problemBehaviors[0]?.behavior || '[Behavior]'}
+
+| Date | Time | Antecedent | Behavior | Consequence | Duration | Intensity | Staff Initials |
+|------|------|------------|----------|-------------|----------|-----------|----------------|
+|      |      |            |          |             |          |           |                |
+|      |      |            |          |             |          |           |                |
+|      |      |            |          |             |          |           |                |
+
+**Daily Totals:**
+- Total incidents: ____
+- Replacement behavior used: ____ times
+
+**Notes:**
+_________________________________________________
 ` : ''}
 
-**FORMATTING REQUIREMENTS:**
-- Use clear section headers
-- Write in professional, objective language
-- Use "[Student Name]" consistently - never invent names
-- Be specific and actionable
-- Include measurable criteria where possible
-- Reference the function throughout - strategies must match function
+---
 
-Write the complete BIP document now:`;
+## Signatures
+
+| Role | Name | Signature | Date |
+|------|------|-----------|------|
+| Parent/Guardian | | | |
+| General Ed Teacher | | | |
+| Special Ed Teacher | | | |
+| Administrator | | | |
+| Other: _________ | | | |
+
+---
+
+**Next Review Date:** ${reviewDate || '[Date]'}
+
+*This Behavior Intervention Plan is based on the results of a Functional Behavioral Assessment and includes positive behavioral supports. The plan must be reviewed at least annually and revised as needed based on progress monitoring data.*
+
+---
+
+**FORMATTING REQUIREMENTS:**
+- Use markdown formatting with ## for section headers
+- Use tables where specified
+- Use bullet points for lists
+- Write in professional, objective language
+- Use "[Student Name]" consistently
+- Make all strategies specific and implementable
+- Include baseline data for measuring progress
+
+Generate the complete BIP now:`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 5000,
+      max_tokens: 6000,
       messages: [{ role: "user", content: prompt }],
     });
 
