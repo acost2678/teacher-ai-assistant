@@ -9,6 +9,7 @@ export default function RubricPage() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [exportingTable, setExportingTable] = useState(false)
   
   const [gradeLevel, setGradeLevel] = useState('3rd Grade')
   const [subject, setSubject] = useState('English Language Arts')
@@ -155,6 +156,38 @@ export default function RubricPage() {
       alert('Failed to export')
     }
     setExporting(false)
+  }
+
+  const handleExportTable = async () => {
+    if (!generatedRubric) return
+    setExportingTable(true)
+    try {
+      const response = await fetch('/api/export-rubric-table', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rubricContent: generatedRubric,
+          assignmentType,
+          gradeLevel,
+          subject,
+          pointScale
+        }),
+      })
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `Rubric_Table_${assignmentType.replace(/\s+/g, '_')}.docx`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
+      }
+    } catch (error) {
+      alert('Failed to export table')
+    }
+    setExportingTable(false)
   }
 
   const handleCopy = () => {
@@ -320,7 +353,10 @@ export default function RubricPage() {
               <div className="flex items-center gap-3">
                 <button onClick={handleCopy} className="text-sm text-purple-600 hover:text-purple-700 font-medium">{copied ? '✓ Copied!' : '📋 Copy'}</button>
                 <button onClick={handleExportDocx} disabled={exporting} className="text-sm text-purple-600 hover:text-purple-700 font-medium disabled:text-purple-300">
-                  {exporting ? 'Exporting...' : '📄 Export .docx'}
+                  {exporting ? 'Exporting...' : '📄 Export Text'}
+                </button>
+                <button onClick={handleExportTable} disabled={exportingTable} className="text-sm bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg font-medium disabled:bg-purple-300">
+                  {exportingTable ? 'Exporting...' : '📊 Download Table'}
                 </button>
               </div>
             )}

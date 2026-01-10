@@ -68,6 +68,8 @@ export default function DashboardPage() {
     { id: 'batch-iep-updates', name: 'Batch IEP Updates', icon: '📋', category: 'compliance', categoryLabel: 'Compliance', description: 'IDEA-compliant progress updates for your entire caseload', badge: 'NEW' },
     { id: 'fba-writer', name: 'FBA Writer', icon: '🔍', category: 'compliance', categoryLabel: 'Compliance', description: 'Generate FBAs with function hypothesis from ABC data', badge: 'NEW' },
     { id: 'bip-generator', name: 'BIP Generator', icon: '📋', category: 'compliance', categoryLabel: 'Compliance', description: 'Generate behavior intervention plans from FBA data', badge: 'NEW' },
+    { id: 'plop-writer', name: 'PLOP Writer', icon: '📊', category: 'compliance', categoryLabel: 'Compliance', description: 'Generate Present Levels of Performance statements', badge: 'NEW' },
+    { id: 'goals-writer', name: 'Measurable Goals Writer', icon: '🎯', category: 'compliance', categoryLabel: 'Compliance', description: 'Create SMART IEP goals with short-term objectives', badge: 'NEW' },
     { id: 'incident-report', name: 'Incident Report', icon: '⚠️', category: 'compliance', categoryLabel: 'Compliance', description: 'Document behavior incidents objectively' },
     { id: 'accommodation', name: 'Accommodations', icon: '♿', category: 'compliance', categoryLabel: 'Compliance', description: 'IEP/504/ELL support suggestions' },
     
