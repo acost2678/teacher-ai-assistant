@@ -92,6 +92,7 @@ export default function DashboardPage() {
     
     // Instructional Prep - Lesson planning & content creation
     { id: 'batch-differentiation', name: 'Batch Differentiation', icon: '📚', category: 'instructional', categoryLabel: 'Instructional', description: 'One assignment → Three tiered versions (below, on, above level)', badge: 'NEW' },
+    { id: 'worksheet-generator', name: 'Worksheet Generator', icon: '📄', category: 'instructional', categoryLabel: 'Instructional', description: 'Create differentiated worksheets for any subject with 3-tier leveling', badge: 'NEW' },
     { id: 'lesson-plan', name: 'Lesson Plan', icon: '📖', category: 'instructional', categoryLabel: 'Instructional', description: 'Create standards-aligned lesson plans with differentiation' },
     { id: 'pacing-guide', name: 'Pacing Guide', icon: '📅', category: 'instructional', categoryLabel: 'Instructional', description: 'Map curriculum across weeks or quarters' },
     { id: 'warm-up', name: 'Warm-Up Generator', icon: '🌅', category: 'instructional', categoryLabel: 'Instructional', description: 'Create engaging bell ringers and do-nows' },
