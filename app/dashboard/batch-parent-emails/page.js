@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
+import TranslateOutput from '../../../components/TranslateOutput'
 
 export default function BatchParentEmailsPage() {
   const [user, setUser] = useState(null)
@@ -610,6 +611,7 @@ export default function BatchParentEmailsPage() {
                 <p className="text-xs text-gray-500 mt-2">
                   💡 Tip: Replace "[Student Name]" and "[Parent Name]" with actual names before sending
                 </p>
+                <TranslateOutput content={generatedContent} />
               </div>
             </div>
 

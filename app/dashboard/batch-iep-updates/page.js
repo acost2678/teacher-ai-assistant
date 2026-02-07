@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
+import TranslateOutput from '../../../components/TranslateOutput'
 
 export default function BatchIEPUpdatesPage() {
   const [user, setUser] = useState(null)
@@ -799,6 +800,7 @@ export default function BatchIEPUpdatesPage() {
                 <p className="text-xs text-gray-500 mt-2">
                   ⚠️ Always verify accuracy before including in official IEP documents. Replace "[Student Name]" with actual name in your secure system.
                 </p>
+                {editedUpdates[selectedUpdate] && <TranslateOutput content={editedUpdates[selectedUpdate] || ''} />}
               </div>
             </div>
 

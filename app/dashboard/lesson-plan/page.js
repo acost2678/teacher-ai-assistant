@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
+import TranslateOutput from '../../../components/TranslateOutput'
 
 export default function LessonPlanPage() {
   const [user, setUser] = useState(null)
@@ -515,6 +516,7 @@ export default function LessonPlanPage() {
             <div className="bg-gray-50 rounded-xl p-5 min-h-[200px] max-h-[600px] overflow-y-auto">
               <pre className="whitespace-pre-wrap text-gray-700 text-sm font-sans leading-relaxed">{generatedPlan}</pre>
             </div>
+             {generatedPlan && <TranslateOutput content={generatedPlan} />}
           ) : (
             <div className="bg-gray-50 rounded-xl p-5 min-h-[200px] flex items-center justify-center">
               <div className="text-center">

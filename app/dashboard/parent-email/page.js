@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
+import TranslateOutput from '../../../components/TranslateOutput'
 
 export default function ParentEmailPage() {
   const [user, setUser] = useState(null)
@@ -405,6 +406,7 @@ export default function ParentEmailPage() {
                 <span>💡</span>
                 <span>Remember to replace <strong>[Student Name]</strong>, <strong>[Parent Name]</strong>, and <strong>[Teacher Name]</strong> with actual names before sending.</span>
               </p>
+              <TranslateOutput content={generatedEmail} />
             </div>
           )}
         </div>

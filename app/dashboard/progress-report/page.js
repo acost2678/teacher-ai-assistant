@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
+import TranslateOutput from '../../../components/TranslateOutput'
 
 export default function ProgressReportPage() {
   const [user, setUser] = useState(null)
@@ -324,6 +325,7 @@ export default function ProgressReportPage() {
               </div>
             </div>
           )}
+          {generatedReport && <TranslateOutput content={generatedReport} />}
         </div>
       </main>
     </div>

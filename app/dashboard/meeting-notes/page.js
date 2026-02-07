@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
+import TranslateOutput from '../../../components/TranslateOutput'
 
 export default function MeetingNotesPage() {
   const [user, setUser] = useState(null)
@@ -316,6 +317,7 @@ export default function MeetingNotesPage() {
               </div>
             </div>
           )}
+           {generatedNotes && <TranslateOutput content={generatedNotes} />}
         </div>
       </main>
     </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
+import TranslateOutput from '../../../components/TranslateOutput'
 
 export default function BatchProgressReportsPage() {
   const [user, setUser] = useState(null)
@@ -684,6 +685,7 @@ export default function BatchProgressReportsPage() {
                 <p className="text-xs text-gray-500 mt-2">
                   💡 Tip: Replace "[Student Name]" with the actual name after downloading
                 </p>
+                <TranslateOutput content={editedEmails[selectedEmail] || ''} />
               </div>
             </div>
 

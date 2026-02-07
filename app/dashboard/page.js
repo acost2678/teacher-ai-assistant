@@ -114,6 +114,7 @@ export default function DashboardPage() {
     { id: 'project-creator', name: 'Project Creator', icon: '🎯', category: 'instructional', categoryLabel: 'Instructional', description: 'Generate creative project ideas and complete project packets from your lessons', badge: 'NEW' },
     { id: 'quest', name: 'Quest Designer', icon: '🗡️', category: 'instructional', categoryLabel: 'Instructional', description: 'Create learning adventures with storylines' },
     { id: 'boss-battle', name: 'Boss Battle', icon: '🐉', category: 'instructional', categoryLabel: 'Instructional', description: 'Turn review into epic game battles' },
+    
   ]
 
   const filteredTools = tools.filter(tool => {
