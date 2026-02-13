@@ -685,7 +685,7 @@ export default function BatchProgressReportsPage() {
                 <p className="text-xs text-gray-500 mt-2">
                   💡 Tip: Replace "[Student Name]" with the actual name after downloading
                 </p>
-                <TranslateOutput content={editedEmails[selectedEmail] || ''} />
+                <TranslateOutput content={editedReports[selectedReport] || ''} />
               </div>
             </div>
 

@@ -611,7 +611,7 @@ export default function BatchParentEmailsPage() {
                 <p className="text-xs text-gray-500 mt-2">
                   💡 Tip: Replace "[Student Name]" and "[Parent Name]" with actual names before sending
                 </p>
-                <TranslateOutput content={generatedContent} />
+                <TranslateOutput content={editedEmails[selectedEmail] || ''} />
               </div>
             </div>
 

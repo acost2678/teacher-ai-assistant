@@ -24,7 +24,7 @@ export default function MeetingNotesPage() {
   const [generatedNotes, setGeneratedNotes] = useState('')
   const [copied, setCopied] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [seeDemo, setSedDemo] = useState(false)
+  const [seeDemo, setSeeDemo] = useState(false)
   const outputRef = useRef(null)
   const router = useRouter()
 
@@ -65,7 +65,7 @@ export default function MeetingNotesPage() {
     setDecisions('')
     setActionItems('')
     setFollowUpDate('')
-    setSeeDemo(false)
+    setSeeDemo(true)
     setGeneratedNotes('')
   }
 
@@ -317,7 +317,7 @@ export default function MeetingNotesPage() {
               </div>
             </div>
           )}
-           {generatedNotes && <TranslateOutput content={generatedNotes} />}
+           <TranslateOutput content={generatedNotes} />
         </div>
       </main>
     </div>
