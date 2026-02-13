@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { useRouter } from 'next/navigation'
+import TranslateOutput from '../../../components/TranslateOutput'
 
 export default function AccommodationPage() {
   const [user, setUser] = useState(null)
@@ -361,9 +362,13 @@ export default function AccommodationPage() {
             </div>
 
             {generatedPlan ? (
-              <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap text-gray-800 text-sm overflow-y-auto max-h-[70vh]">
-                {generatedPlan}
-              </div>
+              <>
+                <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap text-gray-800 text-sm overflow-y-auto max-h-[70vh]">
+                  {generatedPlan}
+                </div>
+                
+                {generatedPlan && <TranslateOutput content={generatedPlan} />}
+              </>
             ) : (
               <div className="bg-gray-50 p-4 rounded-lg text-gray-400 text-center h-96 flex items-center justify-center">
                 <div>

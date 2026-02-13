@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
+import TranslateOutput from '../../../components/TranslateOutput'
 
 export default function DiplomatModePage() {
   const [user, setUser] = useState(null)
@@ -324,9 +325,11 @@ Example: 'Dear Mr. and Mrs. Smith, I need to discuss Johnny's behavior in class.
                     rows={14}
                     className="w-full px-4 py-3 bg-green-50 border border-green-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-700 resize-none"
                   />
-                  <p className="text-xs text-gray-500 mt-2">
+                 <p className="text-xs text-gray-500 mt-2">
                     💡 This is a suggestion - edit as needed to match your voice
                   </p>
+                  
+                  {revisedEmail && <TranslateOutput content={revisedEmail} />}
                 </div>
               </>
             )}
