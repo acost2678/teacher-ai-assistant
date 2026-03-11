@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
+import PrintableWorksheet from '../../../components/PrintableWorksheet'
 
 export default function WorksheetGeneratorPage() {
   const [user, setUser] = useState(null)
@@ -1018,6 +1019,15 @@ export default function WorksheetGeneratorPage() {
                     className="w-full h-[500px] px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 text-sm font-mono resize-none"
                   />
                   <p className="text-xs text-gray-500 mt-2">You can edit the worksheet above before exporting.</p>
+                  <PrintableWorksheet 
+                    title={`${topic || 'Worksheet'} - ${gradeLevel}`}
+                    subtitle={standardCode}
+                    gradeLevel={gradeLevel}
+                    content={getCurrentWorksheetContent()}
+                    includeAnswerKey={includeAnswerKey}
+                    extraSpacing={extraSpacing}
+                    dyslexiaFriendly={dyslexiaFriendly}
+                  />
                 </div>
               ) : (
                 <div className="bg-gray-50 rounded-xl p-8 text-center">

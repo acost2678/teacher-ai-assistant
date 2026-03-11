@@ -10,6 +10,14 @@ export async function POST(request) {
       behaviorContext,
       previousStrategies,
       studentStrengths,
+      // New ABC / PBIS fields
+      antecedents,
+      consequences,
+      functionOfBehavior,
+      replacementBehaviorIdea,
+      tierLevel,
+      settingEvents,
+      // Include options
       includeDataCollection,
       includeParentCommunication,
       includeReinforcementMenu,
@@ -22,295 +30,333 @@ export async function POST(request) {
       );
     }
 
-    const prompt = `You are a positive behavior intervention specialist who creates supportive, function-based behavior plans that focus on teaching replacement behaviors and addressing underlying needs.
+    const tierLabel =
+      tierLevel === "1"
+        ? "Tier 1 – Universal (Classroom-Wide)"
+        : tierLevel === "2"
+        ? "Tier 2 – Targeted (Small Group / Check-In Check-Out)"
+        : tierLevel === "3"
+        ? "Tier 3 – Intensive (Individualized)"
+        : "Tier 1 – Universal (Classroom-Wide)";
 
-**BEHAVIOR PLAN REQUEST:**
+    const prompt = `You are an expert PBIS behavior specialist and school psychologist creating a research-grounded, function-based Positive Behavior Support Plan for an education professional. Ground every strategy in evidence-based PBIS frameworks (antecedent-behavior-consequence analysis, functional behavior assessment principles, replacement behavior teaching, differential reinforcement).
 
-**Student Information:**
+Use [Student Name] as a placeholder throughout — never a real name.
+
+**INPUT DATA:**
+
 - Grade Level: ${gradeLevel || "Elementary"}
+- Support Tier: ${tierLabel}
 - Behavior Concern: ${behaviorConcern}
-${behaviorContext ? `- When/Where it Occurs: ${behaviorContext}` : ""}
+${behaviorContext ? `- When/Where It Occurs: ${behaviorContext}` : ""}
+${antecedents ? `- Known Antecedents/Triggers: ${antecedents}` : ""}
+${consequences ? `- What Happens After (Consequences): ${consequences}` : ""}
+${functionOfBehavior ? `- Suspected Function of Behavior: ${functionOfBehavior}` : ""}
+${replacementBehaviorIdea ? `- Replacement Behavior in Mind: ${replacementBehaviorIdea}` : ""}
+${settingEvents ? `- Setting Events / Slow Triggers: ${settingEvents}` : ""}
 ${previousStrategies ? `- Previously Tried: ${previousStrategies}` : ""}
-${studentStrengths ? `- Student Strengths: ${studentStrengths}` : ""}
+${studentStrengths ? `- Student Strengths & Interests: ${studentStrengths}` : ""}
+
+Generate a complete, polished Positive Behavior Support Plan using the exact structure below. Fill in all sections with specific, actionable, developmentally appropriate content based on the data provided. Do not leave placeholder brackets — generate real content. Use the ABC data and function hypothesis to drive every recommendation.
 
 ---
 
 # 💚 Positive Behavior Support Plan
 
+**Student:** [Student Name]
 **Grade Level:** ${gradeLevel || "Elementary"}
-**Target Behavior:** ${behaviorConcern}
+**Support Tier:** ${tierLabel}
 **Date Created:** _______________
-**Review Date:** _______________
+**Review Date (6–8 weeks):** _______________
+**Plan Developed By:** _______________
 
 ---
 
 ## 🔍 Behavior Description
 
-### Target Behavior (Observable & Measurable)
-**What it looks like:**
-[Describe the behavior in specific, observable terms - what would someone see/hear?]
-
-**What it does NOT include:**
-[Clarify what behaviors are not part of this concern]
+### Target Behavior (Operational Definition)
+[Write a precise, observable, measurable definition of the target behavior — what it looks like, sounds like, and does NOT include. An observer should be able to reliably identify it.]
 
 ### Baseline Data
 | Metric | Current Level |
 |--------|---------------|
-| Frequency | _____ times per [hour/day/week] |
-| Duration | _____ minutes per occurrence |
+| Frequency | |
+| Duration | |
 | Intensity | Low / Medium / High |
+| Most Common Time/Setting | |
 
 ---
 
-## 🎯 Hypothesis: Why This Behavior?
+## 🔬 ABC Analysis
 
-### Possible Function(s)
+### Antecedents (What Happens BEFORE)
+[List the identified antecedents/triggers. Be specific — include instructional demands, transitions, social contexts, sensory triggers, time of day, etc.]
 
-**The student may be trying to:**
-- [ ] **Escape/Avoid:** Get away from [task, situation, person, sensation]
-- [ ] **Obtain Attention:** Get attention from [peers, teacher, specific person]
-- [ ] **Obtain Tangible:** Get access to [item, activity, privilege]
-- [ ] **Sensory:** Meet a sensory need [movement, stimulation, regulation]
+- 
+- 
+- 
 
-**Most Likely Function:** [Primary hypothesis]
+### Behavior (Observable Description)
+[Restate the operational definition concisely]
 
-### Antecedents (Triggers)
-What typically happens BEFORE the behavior:
-- [Trigger 1]
-- [Trigger 2]
-- [Trigger 3]
+### Consequences (What Happens AFTER)
+[What does the student gain or avoid? This is the key to identifying function.]
 
-### Setting Events
-Conditions that make the behavior more likely:
-- [Setting event 1 - e.g., poor sleep, missed breakfast]
-- [Setting event 2 - e.g., transitions, unstructured time]
+- 
+- 
+
+### Setting Events (Slow Triggers)
+[Conditions that increase behavior likelihood even when proximal triggers aren't present: hunger, sleep deprivation, illness, peer conflict earlier in day, medication changes, etc.]
+
+- 
+- 
+
+---
+
+## 🎯 Function of Behavior Hypothesis
+
+**Primary Function:** [Based on the ABC data, what need is this behavior meeting?]
+
+**Hypothesis Statement:**
+"When [antecedent], [Student Name] engages in [behavior] in order to [function — escape/obtain attention/obtain tangible/meet sensory need]. This is maintained by [consequence that reinforces the behavior]."
+
+**Supporting Evidence:**
+[List 2–3 data points or patterns from the ABC analysis that support this hypothesis]
 
 ---
 
 ## ✅ Replacement Behavior
 
-### Instead of [problem behavior], the student will:
-**Replacement Behavior:** [Specific alternative that serves same function]
+### Target Replacement
+[Name the specific replacement behavior — it must be functionally equivalent (serves the same function), easier to perform than the problem behavior, and socially acceptable]
 
-**Why this works:**
-- Serves the same function (gets the student what they need)
-- Is easier/more efficient than the problem behavior
-- Is socially acceptable
+**Why This Replacement Works:**
+- Serves the same function as the problem behavior
+- Is easier and faster to perform
+- Will receive the same outcome (student gets what they need)
 
-### Teaching the Replacement
-**Direct instruction:**
-1. [How to explicitly teach the replacement behavior]
-2. [Practice opportunities]
-3. [Feedback and reinforcement]
+### Teaching Plan
+**Step 1 – Direct Instruction:**
+[How and when to explicitly teach the skill: script, modeling, practice]
 
----
+**Step 2 – Prompting:**
+[How to prompt during real situations before escalation: visual, gestural, verbal]
 
-## 🛡️ Prevention Strategies
-
-### Environmental Modifications
-| Change | How | Why |
-|--------|-----|-----|
-| [Modification 1] | [Implementation] | [Addresses trigger/function] |
-| [Modification 2] | [Implementation] | [Addresses trigger/function] |
-| [Modification 3] | [Implementation] | [Addresses trigger/function] |
-
-### Proactive Supports
-**Before potential trigger situations:**
-- [Proactive strategy 1]
-- [Proactive strategy 2]
-- [Check-in/pre-correction]
-
-### Schedule Adjustments
-- [Any schedule modifications]
-- [Built-in breaks if needed]
-- [Transition supports]
+**Step 3 – Reinforcement of Replacement:**
+[How to reinforce immediately and consistently when the student uses the replacement]
 
 ---
 
-## 🌟 Response Strategies
+## 🛡️ Antecedent Strategies (Prevention)
 
-### When Student Uses REPLACEMENT Behavior:
+[Generate 5–7 specific, evidence-based antecedent modifications that address the identified triggers and function. These should proactively reduce the likelihood of the behavior occurring.]
+
+| Strategy | How to Implement | Addresses |
+|----------|-----------------|-----------|
+| | | |
+| | | |
+| | | |
+| | | |
+| | | |
+
+### Environmental Supports
+[Any physical environment modifications, seating, visual supports, schedules]
+
+### Pre-Correction
+[Specific pre-correction statement to use before known trigger situations]
+
+---
+
+## 🌟 Consequence Strategies
+
+### When [Student Name] Uses the REPLACEMENT Behavior:
 **Immediately:**
-- [Acknowledge the appropriate behavior]
-- [Provide what they were seeking - attention, break, etc.]
-- [Specific praise: "I noticed you..."]
+- Deliver the reinforcer (honor the function — give the break, give the attention, etc.)
+- Provide specific behavior-specific praise: "[Example praise statement]"
+- [Any additional reinforcement action]
 
-**Consistently:**
-- [Reinforcement schedule]
-- [Connection to larger reward system if applicable]
+**Reinforcement Schedule:** [How frequently, fading plan]
 
-### When Student Shows PROBLEM Behavior:
+### When the TARGET BEHAVIOR Occurs:
 
 **DO:**
-- Remain calm and neutral
-- [Specific response strategy 1]
-- [Specific response strategy 2]
-- Redirect to replacement behavior: "[Prompt]"
-- [Safety considerations if applicable]
+[List 3–4 specific, calm, consistent responses — minimize reinforcement of the problem behavior while prompting the replacement]
 
 **DO NOT:**
-- [What to avoid - may reinforce behavior]
-- [What to avoid - may escalate situation]
-- Give extended attention to the behavior
+[List 2–3 things that would inadvertently reinforce the behavior or escalate the situation]
 
-### De-escalation Script:
-"[Word-for-word what to say if behavior escalates]"
+**Planned Ignoring:** [When and how to use — if applicable to function]
 
----
+**Redirection Script:**
+"[Word-for-word prompt to redirect to replacement behavior]"
 
-${includeReinforcementMenu ? `
-## 🎁 Reinforcement Menu
-
-### High-Frequency Reinforcers (Free/Easy)
-- Specific praise
-- High-five/fist bump
-- Positive note home
-- [Age-appropriate option]
-- [Age-appropriate option]
-
-### Medium Reinforcers (Some Cost)
-- [Option 1]
-- [Option 2]
-- [Option 3]
-- Choice of [activity]
-- Helper role
-
-### Special Reinforcers (Earned Over Time)
-- [Bigger reward 1]
-- [Bigger reward 2]
-- [Special privilege]
-
-### Student Preferences:
-- Likes: _______________
-- Interests: _______________
-- Motivators: _______________
+### Escalation Protocol
+**Early Signs:** [What early warning signs look like]
+**If Escalating:** [De-escalation steps in order]
+**Crisis Threshold:** [When to involve admin/counselor/safety protocol — if applicable]
 
 ---
-` : ""}
 
-${includeDataCollection ? `
-## 📊 Data Collection
+${
+  includeReinforcementMenu
+    ? `## 🎁 Reinforcement Menu
 
-### Daily Tracking Form
+### Identify Preferred Reinforcers
+*(Interview student and observe — reinforcement must be individualized)*
 
-**Date:** _______ **Staff:** _______
+| Reinforcer | Type | Frequency |
+|------------|------|-----------|
+| Specific verbal praise | Social | Every instance |
+| | Social | |
+| | Activity | |
+| | Tangible | |
+| | | |
 
-| Time | Antecedent | Behavior | Response | Duration | Notes |
-|------|------------|----------|----------|----------|-------|
+### Reinforcement Schedule
+- **Initial Phase:** Continuous (every correct response)
+- **Building Phase:** Variable ratio (every 2–3 responses)
+- **Maintenance Phase:** Intermittent (unpredictable, infrequent)
+
+### Token Economy (if applicable)
+[Describe token system if appropriate for this student/tier]
+
+---
+`
+    : ""
+}
+
+${
+  includeDataCollection
+    ? `## 📊 Data Collection
+
+### ABC Data Sheet
+
+**Student:** [Student Name] &nbsp;&nbsp; **Date:** _______ &nbsp;&nbsp; **Observer:** _______
+
+| Time | Antecedent | Behavior (describe) | Consequence | Duration | Function? |
+|------|------------|---------------------|-------------|----------|-----------|
 | | | | | | |
 | | | | | | |
 | | | | | | |
+| | | | | | |
 
-### Frequency Count
-| Day | Tally | Total |
-|-----|-------|-------|
-| Mon | | |
-| Tue | | |
-| Wed | | |
-| Thu | | |
-| Fri | | |
+### Frequency Tracking
+
+| Day | Tally (Problem Behavior) | Total | Tally (Replacement Behavior) | Total |
+|-----|--------------------------|-------|-------------------------------|-------|
+| Mon | | | | |
+| Tue | | | | |
+| Wed | | | | |
+| Thu | | | | |
+| Fri | | | | |
+| **Week Total** | | | | |
 
 ### Progress Monitoring Goal
-**Goal:** Reduce [behavior] from [baseline] to [target] by [date]
+**Baseline:** [Current level]
+**Goal:** Reduce [target behavior] to [goal level] AND increase [replacement behavior] to [goal level] by [date]
 
-**Weekly Check:**
-- [ ] Is the behavior decreasing?
-- [ ] Is the replacement behavior increasing?
-- [ ] Are strategies being implemented consistently?
+### Decision Rules
+- **4 data points above goal line** → Consider fading support
+- **4 data points below goal line** → Problem-solve, adjust plan
+- **Plateau (no change)** → Review function hypothesis and reinforcement
 
 ---
-` : ""}
+`
+    : ""
+}
 
-${includeParentCommunication ? `
-## 👨‍👩‍👧 Parent Communication
+${
+  includeParentCommunication
+    ? `## 👨‍👩‍👧 Family Communication
 
-### Initial Meeting Talking Points
+### Initial Contact — Key Talking Points
 
-**Frame Positively:**
-"We're creating a support plan to help [student] be more successful in [specific area]."
+**Opening (strengths-first):**
+"We want to share some of the great things we're seeing with [Student Name], and also talk about a support plan we're putting in place to help them be even more successful."
 
-**Share:**
-- What we're seeing (factual, not judgmental)
-- What we think the student needs
-- What we're going to try
-- How parents can support at home
+**Describing the Behavior (non-judgmental, factual):**
+"We've noticed that [Student Name] sometimes [brief description of behavior]. We think this happens because [function — stated as a need, not a flaw]."
 
-**Home Strategies:**
-- [What parents can do at home]
-- [Consistency between home and school]
-- [Communication plan]
+**Sharing the Plan:**
+"Here's what we're going to do at school to support them..."
+
+**Home Consistency:**
+"Here's how you can help at home to reinforce the same skills..."
+
+**Communication Plan:**
+- [ ] Daily behavior chart
+- [ ] Weekly email/phone update
+- [ ] Parent portal access
+- [ ] Emergency contact protocol: _______________
 
 ### Progress Update Template
 
-Dear [Parent],
+Dear [Parent/Guardian Name],
 
-I wanted to update you on [student's] progress with [target area].
+I wanted to update you on [Student Name]'s progress this week.
 
-**Successes this week:**
-- [Positive observation]
-- [Progress noted]
+**Highlights:**
+- 
 
 **We're continuing to work on:**
-- [Ongoing focus]
+- 
 
-**You can help by:**
-- [Home support]
+**You can reinforce at home by:**
+- 
 
-Please let me know if you have any questions!
+Thank you for your ongoing partnership. Please don't hesitate to reach out.
 
----
-` : ""}
-
-## 📋 Implementation Checklist
-
-### Setup (Before Starting)
-- [ ] All staff trained on plan
-- [ ] Materials/visuals prepared
-- [ ] Data collection forms ready
-- [ ] Reinforcement menu created
-- [ ] Parent informed
-
-### Daily
-- [ ] Implement prevention strategies
-- [ ] Teach/prompt replacement behavior
-- [ ] Respond consistently to behaviors
-- [ ] Collect data
-- [ ] Provide reinforcement
-
-### Weekly
-- [ ] Review data
-- [ ] Adjust strategies if needed
-- [ ] Communicate with team/family
-- [ ] Celebrate progress
+Warm regards,
+[Teacher/Counselor Name]
 
 ---
+`
+    : ""
+}
 
-## 🔄 Review & Adjust
+## 👥 Implementation Plan
 
-### After 2 Weeks, Evaluate:
-- Is the problem behavior decreasing?
-- Is the replacement behavior increasing?
-- Are strategies being implemented with fidelity?
+### Staff Responsible
+| Role | Staff Member | Responsibility |
+|------|-------------|----------------|
+| Primary Implementer | | |
+| Data Collector | | |
+| Parent Contact | | |
+| Plan Coordinator | | |
 
-### If NOT Working:
-1. Check implementation fidelity first
-2. Revisit function hypothesis
-3. Adjust reinforcement (more frequent/preferred)
-4. Consider additional supports/assessment
+### Training Needed
+[List any training staff need before implementing — escape extinction, break card system, reinforcement procedures, crisis protocol]
+
+### Fidelity Checklist (Daily)
+- [ ] Antecedent strategies implemented
+- [ ] Replacement behavior prompted/taught
+- [ ] Replacement behavior reinforced consistently
+- [ ] Consistent response to problem behavior
+- [ ] Data collected
 
 ---
 
-**POSITIVE BEHAVIOR SUPPORT PRINCIPLES:**
-- Behavior is communication
-- Focus on teaching, not just stopping
-- Prevention is more effective than reaction
-- Consistency is essential
-- All behavior serves a function
-- The goal is student success, not compliance`;
+## 🔄 Review Schedule
+
+| Review | When | Who |
+|--------|------|-----|
+| Initial check | After 1 week | Implementation team |
+| Formal review | After 4–6 weeks | Full team + family |
+| Plan revision (if needed) | After 8 weeks | IEP/student support team |
+
+### Plan Adjustment Decision Tree
+1. **Behavior decreasing + replacement increasing** → Stay the course, begin fading
+2. **No change after 2 weeks** → Check fidelity first; then revisit function hypothesis
+3. **Behavior increasing** → Immediate team consultation; consider FBA referral
+
+---
+
+**PBIS PRINCIPLES GUIDING THIS PLAN:**
+Behavior is communication. All behavior serves a function. Prevention is more effective than reaction. Teach — don't just stop. Reinforce the replacement, not the problem. Consistency across all adults is essential.`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 3500,
+      max_tokens: 4000,
       messages: [{ role: "user", content: prompt }],
     });
 

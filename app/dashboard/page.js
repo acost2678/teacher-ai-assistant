@@ -1,33 +1,11 @@
 'use client'
+ import { useState } from 'react'
+ import { useRouter } from 'next/navigation'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '../../lib/supabase'
-
-export default function DashboardPage() {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [collapsedSections, setCollapsedSections] = useState({})
   const router = useRouter()
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user) {
-        router.push('/auth/login')
-      } else {
-        setUser(session.user)
-        setLoading(false)
-      }
-    }
-    checkSession()
-  }, [router])
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/auth/login')
-  }
 
   const toggleSection = (sectionId) => {
     setCollapsedSections(prev => ({
@@ -36,9 +14,7 @@ export default function DashboardPage() {
     }))
   }
 
-  const userName = user?.email?.split('@')[0] || 'Teacher'
-  const displayName = userName.charAt(0).toUpperCase() + userName.slice(1)
-
+  const displayName = 'Teacher'
   const toolCategories = [
     {
       id: 'communication',
@@ -111,13 +87,14 @@ export default function DashboardPage() {
       color: 'teal',
       description: 'Social-emotional learning & wellbeing',
       tools: [
-        { id: 'sel-checkin', name: 'SEL Check-In', icon: '💚', description: 'Morning meeting prompts' },
+        { id: 'sel-checkin', name: 'SEL Check-In & Early Warning', icon: '💚', description: 'Check-ins, trend tracking & Tier 2 flags', badge: 'UPGRADED' },
         { id: 'sel-activity', name: 'SEL Activity', icon: '🎯', description: 'All 5 CASEL competencies' },
         { id: 'calming-corner', name: 'Calming Corner', icon: '🧘', description: 'Self-regulation strategies' },
         { id: 'conflict-resolution', name: 'Conflict Resolution', icon: '🕊️', description: 'Restorative conversations' },
         { id: 'sel-worksheet', name: 'SEL Worksheet', icon: '📝', description: 'Printable skill builders' },
         { id: 'social-story', name: 'Social Story', icon: '📖', description: 'Carol Gray method narratives' },
         { id: 'team-building', name: 'Team Building', icon: '🤝', description: 'Community-building activities' },
+        { id: 'coloring-page-generator', name: 'Coloring Page Generator', icon: '🎨', description: 'Print-ready SEL & academic coloring pages', badge: 'NEW' },
       ]
     },
     {
@@ -148,6 +125,7 @@ export default function DashboardPage() {
         { id: 'writing-conference', name: 'Writing Conference', icon: '📋', description: 'Conference guides' },
         { id: 'quest', name: 'Quest Designer', icon: '🗡️', description: 'Learning adventures' },
         { id: 'boss-battle', name: 'Boss Battle', icon: '🐉', description: 'Gamified review' },
+        { id: 'standards-alignment', name: 'Standards Alignment', icon: '📐', description: 'Tag, generate & export alignment reports', badge: 'NEW' }
       ]
     },
   ]
@@ -173,10 +151,9 @@ export default function DashboardPage() {
     return colors[color] || colors.blue
   }
 
-  // Filter tools based on search
   const filterTools = (tools) => {
     if (!searchQuery) return tools
-    return tools.filter(tool => 
+    return tools.filter(tool =>
       tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tool.description.toLowerCase().includes(searchQuery.toLowerCase())
     )
@@ -185,27 +162,15 @@ export default function DashboardPage() {
   const hasSearchResults = searchQuery && toolCategories.some(cat => filterTools(cat.tools).length > 0)
   const noSearchResults = searchQuery && !hasSearchResults
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-500">Loading your dashboard...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <img src="/axolotl-mascot.png" alt="AXEL" className="w-10 h-10" />
             <div>
               <h1 className="text-lg font-bold text-gray-800">Teacher AI Assistant</h1>
-              <p className="text-xs text-gray-500">57 tools to save your evenings</p>
+              <p className="text-xs text-gray-500">58 tools to save your evenings</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -227,34 +192,28 @@ export default function DashboardPage() {
                 {displayName.charAt(0)}
               </div>
             </div>
-            <button onClick={handleSignOut} className="text-gray-400 hover:text-red-500 text-sm">
-              Sign Out
-            </button>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-6">
-        {/* Welcome & Search */}
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-1">
             Welcome back, {displayName} 👋
           </h2>
           <p className="text-gray-500 mb-6">What would you like to create today?</p>
-          
-          {/* Search Bar */}
           <div className="max-w-xl mx-auto">
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
               <input
                 type="text"
-                placeholder="Search 57 tools..."
+                placeholder="Search 58 tools..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700"
               />
               {searchQuery && (
-                <button 
+                <button
                   onClick={() => setSearchQuery('')}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
@@ -265,7 +224,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Quick Access - Only show when not searching */}
         {!searchQuery && (
           <div className="mb-8">
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">⚡ Quick Access</h3>
@@ -287,12 +245,11 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* No Search Results */}
         {noSearchResults && (
           <div className="text-center py-12">
             <div className="text-4xl mb-3">🔍</div>
             <p className="text-gray-500">No tools found for "{searchQuery}"</p>
-            <button 
+            <button
               onClick={() => setSearchQuery('')}
               className="mt-3 text-purple-600 hover:text-purple-700 font-medium"
             >
@@ -301,18 +258,16 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Tool Categories */}
         <div className="space-y-6">
           {toolCategories.map(category => {
             const filteredTools = filterTools(category.tools)
             if (searchQuery && filteredTools.length === 0) return null
-            
+
             const colors = getColorClasses(category.color)
             const isCollapsed = collapsedSections[category.id]
-            
+
             return (
               <div key={category.id} className={`rounded-2xl border-2 ${colors.border} overflow-hidden`}>
-                {/* Category Header */}
                 <button
                   onClick={() => toggleSection(category.id)}
                   className={`w-full ${colors.header} px-6 py-4 flex items-center justify-between hover:opacity-90 transition-opacity`}
@@ -331,8 +286,7 @@ export default function DashboardPage() {
                     ▼
                   </span>
                 </button>
-                
-                {/* Category Tools */}
+
                 {!isCollapsed && (
                   <div className={`${colors.bg} p-4`}>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -368,12 +322,11 @@ export default function DashboardPage() {
           })}
         </div>
 
-        {/* Footer Stats */}
         {!searchQuery && (
           <div className="mt-12 text-center">
             <div className="inline-flex items-center gap-6 bg-white rounded-full px-8 py-3 shadow-sm border border-gray-100">
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">57</div>
+                <div className="text-2xl font-bold text-purple-600">58</div>
                 <div className="text-xs text-gray-500">Tools</div>
               </div>
               <div className="w-px h-8 bg-gray-200"></div>
@@ -391,7 +344,6 @@ export default function DashboardPage() {
         )}
       </main>
 
-      {/* Floating AXEL Button */}
       <button
         onClick={() => router.push('/dashboard/axel-assistant')}
         className="fixed bottom-6 right-6 w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 group z-50"

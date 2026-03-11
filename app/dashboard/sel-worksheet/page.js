@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
+import PrintableWorksheet from '../../../components/PrintableWorksheet'
 
 export default function SELWorksheetPage() {
   const [user, setUser] = useState(null)
@@ -282,10 +283,18 @@ export default function SELWorksheetPage() {
             )}
           </div>
 
-          {generatedWorksheet ? (
-            <div className="bg-gray-50 rounded-xl p-5 min-h-[200px] max-h-[500px] overflow-y-auto">
-              <pre className="whitespace-pre-wrap text-gray-700 text-sm font-sans leading-relaxed">{generatedWorksheet}</pre>
-            </div>
+     {generatedWorksheet ? (
+            <>
+              <div className="bg-gray-50 rounded-xl p-5 min-h-[200px] max-h-[500px] overflow-y-auto">
+                <pre className="whitespace-pre-wrap text-gray-700 text-sm font-sans leading-relaxed">{generatedWorksheet}</pre>
+              </div>
+              <PrintableWorksheet 
+                title={`SEL Worksheet: ${topic || selCompetency}`}
+                subtitle={worksheetType}
+                gradeLevel={gradeLevel}
+                content={generatedWorksheet}
+              />
+            </>
           ) : (
             <div className="bg-gray-50 rounded-xl p-5 min-h-[200px] flex items-center justify-center">
               <div className="text-center">

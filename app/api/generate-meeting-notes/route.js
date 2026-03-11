@@ -6,149 +6,210 @@ const anthropic = new Anthropic({
 
 export async function POST(request) {
   try {
-    const { 
+    const {
       meetingType,
       meetingDate,
-      meetingTime,
-      duration,
       attendees,
       studentName,
-      meetingPurpose,
-      discussionNotes,
-      decisionsReached,
-      concerns
+      agenda,
+      discussionPoints,
+      decisions,
+      actionItems,
+      followUpDate,
+      // New: raw transcript
+      rawTranscript,
     } = await request.json();
 
-    const meetingTypeLabels = {
-      "parent-teacher": "Parent-Teacher Conference",
-      "iep": "IEP Meeting",
-      "team-plc": "Team/PLC Meeting",
-      "sst": "Student Support Team (SST) Meeting",
-      "504": "504 Plan Meeting",
-      "general": "General Meeting"
-    };
-
-    const meetingLabel = meetingTypeLabels[meetingType] || "Meeting";
-
-    let meetingSpecificInstructions = "";
-    
-    if (meetingType === "parent-teacher") {
-      meetingSpecificInstructions = `
-- Focus on student progress, strengths, and areas for growth
-- Include specific examples discussed
-- Note parent questions and concerns addressed
-- Emphasize partnership between home and school`;
-    } else if (meetingType === "iep") {
-      meetingSpecificInstructions = `
-- Reference IEP goals discussed
-- Document any goal modifications or updates
-- Note services discussed
-- Include present levels of performance updates
-- Document team consensus on decisions`;
-    } else if (meetingType === "team-plc") {
-      meetingSpecificInstructions = `
-- Focus on instructional strategies discussed
-- Note data reviewed and conclusions
-- Document collaborative decisions
-- Include curriculum or assessment discussions`;
-    } else if (meetingType === "sst") {
-      meetingSpecificInstructions = `
-- Document student concerns discussed
-- Note interventions recommended
-- Include data/evidence reviewed
-- Document support strategies agreed upon
-- Note referrals or next steps for evaluation if applicable`;
+    if (!discussionPoints && !rawTranscript) {
+      return Response.json(
+        { error: "Please enter discussion points or paste a transcript" },
+        { status: 400 }
+      );
     }
 
-    const prompt = `You are an experienced educator helping to create professional meeting documentation. Generate well-organized meeting notes based on the following information:
+    const meetingTypeInstructions = {
+      "Parent-Teacher Conference": `
+- Open with student strengths before areas of concern
+- Document parent questions and concerns with empathy
+- Note specific examples of student work or behavior discussed
+- Emphasize home-school partnership in action items`,
+      "IEP Meeting": `
+- Document present levels of performance updates discussed
+- Note any IEP goal progress data reviewed
+- Record any proposed goal modifications or new goals
+- Document service hours, placement, and accommodations discussed
+- Note team consensus — any disagreements must be documented
+- Include parent rights discussed if applicable`,
+      "SST/RTI Meeting": `
+- Document student concerns and referral reason
+- Note data and evidence reviewed (attendance, grades, behavior, assessments)
+- Record Tier 1 strategies already attempted and their results
+- Document new interventions recommended with specific implementation details
+- Note any referrals for evaluation or additional services`,
+      "PLC Meeting": `
+- Document student data reviewed and key findings
+- Note instructional strategies discussed
+- Record collaborative decisions about curriculum or assessment
+- Include any intervention groupings or differentiation decisions`,
+      "504 Plan Meeting": `
+- Document disability and how it impacts education discussed
+- Note accommodations reviewed, added, or removed
+- Record team agreement on all accommodations
+- Document any evaluation data reviewed`,
+    };
 
-**Meeting Type:** ${meetingLabel}
-**Date:** ${meetingDate}
-**Time:** ${meetingTime}
-**Duration:** ${duration || 'Not specified'}
+    const specificInstructions =
+      meetingTypeInstructions[meetingType] ||
+      "- Document all key discussion points thoroughly\n- Ensure action items are specific and assigned";
 
-**Attendees:**
-${attendees}
+    const inputSource = rawTranscript
+      ? `**RAW TRANSCRIPT TO PROCESS:**\n${rawTranscript}`
+      : `**AGENDA / PURPOSE:**\n${agenda || "Not specified"}
 
-${studentName ? `**Student Being Discussed:** ${studentName}` : ''}
+**DISCUSSION POINTS:**
+${discussionPoints}
 
-**Purpose of Meeting:**
-${meetingPurpose}
+**DECISIONS MADE:**
+${decisions || "Not specified"}
 
-**Discussion Notes from Teacher:**
-${discussionNotes}
+**ACTION ITEMS:**
+${actionItems || "Not specified"}`;
 
-**Decisions Reached:**
-${decisionsReached || 'To be determined from discussion'}
+    const prompt = `You are an experienced school administrator and educator creating professional, legally sound meeting documentation. Generate polished meeting notes based on the information below.
 
-**Concerns Raised:**
-${concerns || 'None specified'}
-
----
-
-Generate professional meeting notes with the following sections:
-
-## MEETING NOTES: ${meetingLabel.toUpperCase()}
-
-**1. MEETING INFORMATION**
-Format the date, time, duration, and attendees in a clean, professional header.
-
-**2. MEETING PURPOSE**
-State the purpose clearly in 1-2 sentences.
-
-**3. DISCUSSION SUMMARY**
-Expand the teacher's notes into a well-organized summary of the discussion. Include:
-- Key topics covered
-- Important points raised by participants
-- Any data or evidence reviewed
-${meetingSpecificInstructions}
-
-**4. DECISIONS & OUTCOMES**
-List the decisions reached during the meeting in a clear, bulleted format. Be specific about what was agreed upon.
-
-**5. ACTION ITEMS**
-Create a table or structured list with:
-- Task/Action needed
-- Person responsible
-- Deadline (suggest reasonable timeframes if not specified)
-
-Format example:
-| Action Item | Responsible Party | Deadline |
-|-------------|------------------|----------|
-
-**6. FOLLOW-UP**
-- Next meeting date (if applicable)
-- Items to be reviewed at next meeting
-- Any pending decisions
-
-**7. ADDITIONAL NOTES**
-Any other relevant information or concerns to document.
+**PRIVACY:** Use "[Student Name]" as a placeholder — never use the actual student name provided. This is a FERPA-compliant system.
 
 ---
 
-Guidelines:
-- Keep tone professional but accessible
-- Be specific and actionable
-- Use clear, concise language
-- Organize information logically
-- Make action items measurable and trackable
+**MEETING DETAILS:**
+- Type: ${meetingType}
+- Date: ${meetingDate || "[Date]"}
+- Attendees: ${attendees || "Not specified"}
+${studentName ? `- Student (use placeholder): [Student Name]` : ""}
+${followUpDate ? `- Follow-up Date: ${followUpDate}` : ""}
 
-Write the meeting notes now:`;
+${inputSource}
+
+---
+
+**MEETING-SPECIFIC GUIDELINES FOR THIS TYPE (${meetingType}):**
+${specificInstructions}
+
+---
+
+Generate complete, professional meeting notes using EXACTLY this structure. Fill every section with specific content — do not leave empty placeholders. Write in professional, objective third-person language suitable for official school records.
+
+---
+
+## MEETING NOTES: ${meetingType.toUpperCase()}
+
+**Date:** ${meetingDate || "[Date]"}
+**Meeting Type:** ${meetingType}
+**Attendees:** ${attendees || "[List attendees]"}
+${studentName ? "**Student:** [Student Name]" : ""}
+${followUpDate ? `**Follow-up Date:** ${followUpDate}` : ""}
+**Notes Prepared By:** _______________
+
+---
+
+### 1. PURPOSE OF MEETING
+[1–2 sentences stating why this meeting was held and what it intended to accomplish]
+
+---
+
+### 2. DISCUSSION SUMMARY
+[Organized summary of the meeting discussion. Use subheadings if multiple topics were covered. Expand raw notes into complete, professional sentences. Capture all key points raised, data shared, and perspectives expressed. For IEP/SST meetings, include data referenced.]
+
+---
+
+### 3. KEY DECISIONS
+[Bullet list of all decisions reached during the meeting. Each item should be specific and unambiguous — someone reading this 6 months later should know exactly what was decided.]
+
+- 
+- 
+- 
+
+---
+
+### 4. ACTION ITEMS
+
+| # | Action Item | Person Responsible | Deadline | Status |
+|---|-------------|-------------------|----------|--------|
+| 1 | | | | Pending |
+| 2 | | | | Pending |
+| 3 | | | | Pending |
+
+[Add rows as needed. Deadlines should be specific dates where possible. If not specified, suggest reasonable timeframes based on meeting type.]
+
+---
+
+### 5. CONCERNS & FOLLOW-UP ITEMS
+[Any unresolved concerns, items tabled for later, or topics that need further information before a decision can be made]
+
+---
+
+### 6. NEXT STEPS
+- **Next Meeting:** ${followUpDate || "To be scheduled"}
+- **Items for Next Agenda:** [List topics to revisit]
+- **Pending Items:** [Anything awaiting information or decision]
+
+---
+
+### 7. ADDITIONAL NOTES
+[Any other relevant information, context, or documentation notes that don't fit the above categories]
+
+---
+
+*These notes are a summary of the meeting discussion and do not constitute a verbatim transcript. Please contact [Name] with any corrections within 5 business days.*
+
+---
+
+**SIGNATURES**
+
+| Role | Name | Signature | Date |
+|------|------|-----------|------|
+| | | | |
+| | | | |
+| | | | |
+
+---
+
+After the meeting notes, output a separate section formatted EXACTLY like this — it will be parsed by the application:
+
+===ACTION_ITEMS_START===
+[List each action item on its own line in this format: TASK | PERSON | DEADLINE]
+===ACTION_ITEMS_END===`;
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 2500,
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
+      max_tokens: 4000,
+      messages: [{ role: "user", content: prompt }],
     });
 
-    const notesContent = message.content[0].text;
+    const fullResponse = message.content[0].text;
 
-    return Response.json({ notes: notesContent });
+    // Parse out action items separately
+    const actionItemsMatch = fullResponse.match(
+      /===ACTION_ITEMS_START===\n([\s\S]*?)\n===ACTION_ITEMS_END===/
+    );
+
+    const parsedActionItems = actionItemsMatch
+      ? actionItemsMatch[1]
+          .trim()
+          .split("\n")
+          .filter((line) => line.includes("|"))
+          .map((line) => {
+            const [task, person, deadline] = line.split("|").map((s) => s.trim());
+            return { task, person, deadline };
+          })
+      : [];
+
+    // Clean notes — remove the action items section from the main output
+    const notes = fullResponse
+      .replace(/===ACTION_ITEMS_START===[\s\S]*?===ACTION_ITEMS_END===/g, "")
+      .trim();
+
+    return Response.json({ notes, actionItems: parsedActionItems });
   } catch (error) {
     console.error("Error generating meeting notes:", error);
     return Response.json(
