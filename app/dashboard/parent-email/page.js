@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabase'
 import TranslateOutput from '../../../components/TranslateOutput'
+import GoogleDriveButton from '../../../components/GoogleDriveButton'
 
 export default function ParentEmailPage() {
   const [user, setUser] = useState(null)
@@ -204,13 +205,7 @@ export default function ParentEmailPage() {
             </div>
             <div className="flex items-center gap-3">
               {showDemo && (
-                <button
-                  onClick={handleResetDemo}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                  title="Reset"
-                >
-                  ↺
-                </button>
+                <button onClick={handleResetDemo} className="text-gray-400 hover:text-gray-600 transition-colors" title="Reset">↺</button>
               )}
               <button
                 onClick={handleShowDemo}
@@ -232,7 +227,7 @@ export default function ParentEmailPage() {
             </div>
           </div>
 
-          {/* Exemplar Banner */}
+          {/* Demo Banner */}
           {showDemo && (
             <div className="bg-purple-50 border-l-4 border-purple-500 rounded-r-lg p-4 mb-6">
               <div className="flex items-start gap-3">
@@ -241,10 +236,7 @@ export default function ParentEmailPage() {
                   <h3 className="text-purple-700 font-medium">Demo is ready!</h3>
                   <p className="text-purple-600 text-sm">We've filled in example inputs. Click Generate to see the output.</p>
                 </div>
-                <button
-                  onClick={scrollToOutput}
-                  className="text-purple-600 hover:text-purple-700 text-sm font-medium whitespace-nowrap"
-                >
+                <button onClick={scrollToOutput} className="text-purple-600 hover:text-purple-700 text-sm font-medium whitespace-nowrap">
                   Scroll to view output
                 </button>
               </div>
@@ -253,15 +245,10 @@ export default function ParentEmailPage() {
 
           {/* Email Type */}
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Type: *
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email Type: *</label>
             <div className="relative">
-              <select
-                value={emailType}
-                onChange={(e) => setEmailType(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700 appearance-none cursor-pointer"
-              >
+              <select value={emailType} onChange={(e) => setEmailType(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700 appearance-none cursor-pointer">
                 <option>General Update</option>
                 <option>Positive News</option>
                 <option>Behavior Concern</option>
@@ -276,15 +263,10 @@ export default function ParentEmailPage() {
 
           {/* Tone */}
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tone: *
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Tone: *</label>
             <div className="relative">
-              <select
-                value={tone}
-                onChange={(e) => setTone(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700 appearance-none cursor-pointer"
-              >
+              <select value={tone} onChange={(e) => setTone(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700 appearance-none cursor-pointer">
                 <option>Warm & Friendly</option>
                 <option>Professional</option>
                 <option>Encouraging</option>
@@ -297,60 +279,27 @@ export default function ParentEmailPage() {
 
           {/* Key Points */}
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Your Notes: *
-            </label>
-            <textarea
-              value={keyPoints}
-              onChange={(e) => setKeyPoints(e.target.value)}
+            <label className="block text-sm font-medium text-gray-700 mb-2">Your Notes: *</label>
+            <textarea value={keyPoints} onChange={(e) => setKeyPoints(e.target.value)}
               placeholder="Enter the key points you want to communicate..."
               rows={6}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700 placeholder-gray-400 resize-none"
-            />
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700 placeholder-gray-400 resize-none" />
           </div>
 
           {/* File Upload */}
           <div className="mb-6 flex items-center gap-4">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              accept=".txt,.md,.csv"
-              className="hidden"
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 text-purple-600 hover:text-purple-700 text-sm font-medium"
-            >
+            <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".txt,.md,.csv" className="hidden" />
+            <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 text-purple-600 hover:text-purple-700 text-sm font-medium">
               <span>📎</span> Add File
             </button>
-            {uploadedFile && (
-              <span className="text-sm text-gray-500">
-                {uploadedFile.name}
-              </span>
-            )}
-            <span className="text-sm text-gray-400 ml-auto">
-              Supports: .txt, .md, .csv
-            </span>
+            {uploadedFile && <span className="text-sm text-gray-500">{uploadedFile.name}</span>}
+            <span className="text-sm text-gray-400 ml-auto">Supports: .txt, .md, .csv</span>
           </div>
 
           {/* Generate Button */}
-          <button
-            onClick={handleGenerate}
-            disabled={generating || (!keyPoints && !fileContent)}
-            className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white font-medium py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
-          >
-            {generating ? (
-              <>
-                <span className="animate-spin">⏳</span>
-                Generating...
-              </>
-            ) : (
-              <>
-                <span>✨</span>
-                Generate
-              </>
-            )}
+          <button onClick={handleGenerate} disabled={generating || (!keyPoints && !fileContent)}
+            className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white font-medium py-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+            {generating ? (<><span className="animate-spin">⏳</span>Generating...</>) : (<><span>✨</span>Generate</>)}
           </button>
         </div>
 
@@ -359,36 +308,28 @@ export default function ParentEmailPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-gray-800">Generated Email</h2>
-              {saved && (
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                  ✓ Saved
-                </span>
-              )}
+              {saved && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">✓ Saved</span>}
             </div>
             {generatedEmail && (
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleCopy}
-                  className="text-sm text-purple-600 hover:text-purple-700 font-medium"
-                >
+              <div className="flex items-center gap-3 flex-wrap justify-end">
+                <button onClick={handleCopy} className="text-sm text-purple-600 hover:text-purple-700 font-medium">
                   {copied ? '✓ Copied!' : '📋 Copy'}
                 </button>
-                <button
-                  onClick={handleExportDocx}
-                  disabled={exporting}
-                  className="text-sm text-purple-600 hover:text-purple-700 font-medium disabled:text-purple-300"
-                >
+                <button onClick={handleExportDocx} disabled={exporting} className="text-sm text-purple-600 hover:text-purple-700 font-medium disabled:text-purple-300">
                   {exporting ? 'Exporting...' : '📄 Export .docx'}
                 </button>
+                <GoogleDriveButton
+                  title={`Parent Email - ${emailType}`}
+                  content={generatedEmail}
+                  toolName="Parent Email"
+                />
               </div>
             )}
           </div>
 
           {generatedEmail ? (
             <div className="bg-gray-50 rounded-xl p-5 min-h-[200px] max-h-[500px] overflow-y-auto">
-              <pre className="whitespace-pre-wrap text-gray-700 text-sm font-sans leading-relaxed">
-                {generatedEmail}
-              </pre>
+              <pre className="whitespace-pre-wrap text-gray-700 text-sm font-sans leading-relaxed">{generatedEmail}</pre>
             </div>
           ) : (
             <div className="bg-gray-50 rounded-xl p-5 min-h-[200px] flex items-center justify-center">
@@ -399,7 +340,6 @@ export default function ParentEmailPage() {
             </div>
           )}
 
-          {/* Placeholder Reminder */}
           {generatedEmail && (
             <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
               <p className="text-amber-800 text-sm flex items-center gap-2">

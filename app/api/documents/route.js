@@ -1,432 +1,153 @@
-'use client'
+import { createClient } from '@supabase/supabase-js'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '../../../lib/supabase'
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 
-const TOOL_COLORS = {
-  'behavior-plan':     { bg: 'bg-green-100',  text: 'text-green-800',  dot: 'bg-green-500'  },
-  'bip-generator':     { bg: 'bg-purple-100', text: 'text-purple-800', dot: 'bg-purple-500' },
-  'meeting-notes':     { bg: 'bg-blue-100',   text: 'text-blue-800',   dot: 'bg-blue-500'   },
-  'parent-email':      { bg: 'bg-pink-100',   text: 'text-pink-800',   dot: 'bg-pink-500'   },
-  'progress-report':   { bg: 'bg-amber-100',  text: 'text-amber-800',  dot: 'bg-amber-500'  },
-  'iep-update':        { bg: 'bg-indigo-100', text: 'text-indigo-800', dot: 'bg-indigo-500' },
-  'lesson-plan':       { bg: 'bg-teal-100',   text: 'text-teal-800',   dot: 'bg-teal-500'   },
-  'default':           { bg: 'bg-gray-100',   text: 'text-gray-700',   dot: 'bg-gray-400'   },
+// GET - fetch documents for a user
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
+    const toolType = searchParams.get('toolType')
+    const search = searchParams.get('search')
+    const limit = parseInt(searchParams.get('limit') || '50')
+    const id = searchParams.get('id')
+
+    if (!userId) {
+      return Response.json({ error: 'userId is required' }, { status: 400 })
+    }
+
+    // Single document fetch
+    if (id) {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('id', id)
+        .eq('teacher_id', userId)
+        .single()
+
+      if (error) return Response.json({ error: error.message }, { status: 500 })
+      return Response.json({ document: data })
+    }
+
+    // Build query
+    let query = supabase
+      .from('documents')
+      .select('*')
+      .eq('teacher_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (toolType) query = query.eq('tool_type', toolType)
+    if (search) query = query.ilike('title', `%${search}%`)
+
+    const { data, error } = await query
+
+    if (error) return Response.json({ error: error.message }, { status: 500 })
+    return Response.json({ documents: data || [] })
+
+  } catch (error) {
+    console.error('GET /api/documents error:', error)
+    return Response.json({ error: error.message }, { status: 500 })
+  }
 }
 
-function toolColor(toolType) {
-  return TOOL_COLORS[toolType] || TOOL_COLORS['default']
-}
+export async function POST(request) {
+  try {
+    const body = await request.json()
+    console.log('POST /api/documents body:', JSON.stringify(body))
+    
+    const { userId, title, toolType, toolName, content, metadata } = body
 
-function formatDate(dateStr) {
-  if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric'
+    if (!userId || !title || !content) {
+      console.log('POST /api/documents missing fields:', { userId: !!userId, title: !!title, content: !!content })
+      return Response.json({ error: 'userId, title, and content are required' }, { status: 400 })
+    }
+
+    const { data, error } = await supabase
+      .from('documents')
+  
+    .insert({
+    teacher_id: userId,
+    title,
+    doc_type: toolType || 'general',
+    tool_type: toolType,
+    tool_name: toolName,
+    content,
+    metadata: metadata || {},
   })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('POST /api/documents supabase error:', error.message, error.code, error.details, error.hint)
+      return Response.json({ error: error.message }, { status: 500 })
+    }
+    return Response.json({ document: data })
+
+  } catch (error) {
+    console.error('POST /api/documents catch error:', error.message)
+    return Response.json({ error: error.message }, { status: 500 })
+  }
 }
 
-function formatTime(dateStr) {
-  if (!dateStr) return ''
-  return new Date(dateStr).toLocaleTimeString('en-US', {
-    hour: 'numeric', minute: '2-digit'
-  })
+// PATCH - update an existing document
+export async function PATCH(request) {
+  try {
+    const body = await request.json()
+    const { documentId, userId, title, content } = body
+
+    if (!documentId || !userId) {
+      return Response.json({ error: 'documentId and userId are required' }, { status: 400 })
+    }
+
+    const updates = { updated_at: new Date().toISOString() }
+    if (title !== undefined) updates.title = title
+    if (content !== undefined) updates.content = content
+
+    const { data, error } = await supabase
+      .from('documents')
+      .update(updates)
+      .eq('id', documentId)
+      .eq('teacher_id', userId)
+      .select()
+      .single()
+
+    if (error) return Response.json({ error: error.message }, { status: 500 })
+    return Response.json({ document: data })
+
+  } catch (error) {
+    console.error('PATCH /api/documents error:', error)
+    return Response.json({ error: error.message }, { status: 500 })
+  }
 }
 
-function wordCount(text) {
-  if (!text) return 0
-  return text.trim().split(/\s+/).length
-}
+// DELETE - delete a document
+export async function DELETE(request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    const userId = searchParams.get('userId')
 
-export default function SavedDocumentsPage() {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [documents, setDocuments] = useState([])
-  const [fetching, setFetching] = useState(false)
-
-  // Filters
-  const [search, setSearch] = useState('')
-  const [filterTool, setFilterTool] = useState('all')
-
-  // View / Edit modal
-  const [selectedDoc, setSelectedDoc] = useState(null)
-  const [modalMode, setModalMode] = useState('view') // 'view' | 'edit'
-  const [editTitle, setEditTitle] = useState('')
-  const [editContent, setEditContent] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [saveSuccess, setSaveSuccess] = useState(false)
-
-  // Delete confirm
-  const [deleteConfirmId, setDeleteConfirmId] = useState(null)
-  const [deleting, setDeleting] = useState(false)
-
-  // Export
-  const [exporting, setExporting] = useState(false)
-
-  const router = useRouter()
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        setUser(session.user)
-        setLoading(false)
-      } else {
-        router.push('/auth/login')
-      }
+    if (!id || !userId) {
+      return Response.json({ error: 'id and userId are required' }, { status: 400 })
     }
-    checkSession()
-  }, [router])
 
-  useEffect(() => {
-    if (user) fetchDocuments()
-  }, [user, filterTool])
+    const { error } = await supabase
+      .from('documents')
+      .delete()
+      .eq('id', id)
+      .eq('teacher_id', userId)
 
-  const fetchDocuments = async () => {
-    setFetching(true)
-    try {
-      const params = new URLSearchParams({ userId: user.id, limit: '100' })
-      if (filterTool !== 'all') params.append('toolType', filterTool)
-      if (search) params.append('search', search)
+   if (error) {
+  console.error('POST /api/documents supabase error:', error.message, error.code, error.details)
+  return Response.json({ error: error.message }, { status: 500 })
+ }
 
-      const res = await fetch(`/api/documents?${params}`)
-      const data = await res.json()
-      if (data.documents) setDocuments(data.documents)
-    } catch (err) {
-      console.error('Error fetching documents:', err)
-    }
-    setFetching(false)
+  } catch (error) {
+    console.error('DELETE /api/documents error:', error)
+    return Response.json({ error: error.message }, { status: 500 })
   }
-
-  const handleSearch = (e) => {
-    e.preventDefault()
-    fetchDocuments()
-  }
-
-  const handleOpenDoc = (doc, mode = 'view') => {
-    setSelectedDoc(doc)
-    setEditTitle(doc.title)
-    setEditContent(doc.content)
-    setModalMode(mode)
-    setSaveSuccess(false)
-  }
-
-  const handleCloseModal = () => {
-    setSelectedDoc(null)
-    setModalMode('view')
-    setEditTitle('')
-    setEditContent('')
-    setSaveSuccess(false)
-  }
-
-  const handleSaveEdit = async () => {
-    if (!selectedDoc || !user) return
-    setSaving(true)
-    setSaveSuccess(false)
-    try {
-      const res = await fetch('/api/documents', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          documentId: selectedDoc.id,
-          userId: user.id,
-          title: editTitle,
-          content: editContent,
-        }),
-      })
-      const data = await res.json()
-      if (data.document) {
-        setDocuments(prev => prev.map(d => d.id === selectedDoc.id ? data.document : d))
-        setSelectedDoc(data.document)
-        setSaveSuccess(true)
-        setModalMode('view')
-      }
-    } catch (err) {
-      alert('Failed to save changes')
-    }
-    setSaving(false)
-  }
-
-  const handleDelete = async (docId) => {
-    setDeleting(true)
-    try {
-      await fetch(`/api/documents?id=${docId}&userId=${user.id}`, { method: 'DELETE' })
-      setDocuments(prev => prev.filter(d => d.id !== docId))
-      if (selectedDoc?.id === docId) handleCloseModal()
-    } catch (err) {
-      alert('Failed to delete document')
-    }
-    setDeleteConfirmId(null)
-    setDeleting(false)
-  }
-
-  const handleCopy = (content) => {
-    navigator.clipboard.writeText(content)
-  }
-
-  const handleExport = async (doc) => {
-    setExporting(true)
-    try {
-      const res = await fetch('/api/export-docx', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: doc.title,
-          content: doc.content,
-          toolName: doc.tool_name || doc.tool_type,
-        }),
-      })
-      if (res.ok) {
-        const blob = await res.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `${doc.title.replace(/[^a-z0-9]/gi, '_')}.docx`
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        window.URL.revokeObjectURL(url)
-      }
-    } catch (err) {
-      alert('Export failed')
-    }
-    setExporting(false)
-  }
-
-  // Get unique tool types for filter dropdown
-  const toolTypes = ['all', ...new Set(documents.map(d => d.tool_type).filter(Boolean))]
-
-  const filteredDocs = documents.filter(doc => {
-    if (!search) return true
-    return doc.title?.toLowerCase().includes(search.toLowerCase())
-  })
-
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <p className="text-gray-500">Loading...</p>
-    </div>
-  )
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center gap-2 text-sm">
-            <button onClick={() => router.push('/dashboard')} className="text-gray-500 hover:text-purple-600 transition-colors">Dashboard</button>
-            <span className="text-gray-300">›</span>
-            <span className="text-gray-800 font-medium">Saved Documents</span>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-6 py-8">
-
-        {/* Header */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
-          <div className="flex items-start gap-3">
-            <span className="text-3xl">🗂️</span>
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-800">Saved Documents</h1>
-              <p className="text-gray-500 text-sm mt-1">All documents generated across your tools — view, edit, export, or delete.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Search + Filter bar */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6">
-          <form onSubmit={handleSearch} className="flex gap-3 flex-wrap">
-            <div className="flex-1 min-w-48">
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by title..."
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 text-sm"
-              />
-            </div>
-            <select
-              value={filterTool}
-              onChange={(e) => setFilterTool(e.target.value)}
-              className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 text-sm"
-            >
-              {toolTypes.map(t => (
-                <option key={t} value={t}>
-                  {t === 'all' ? 'All Tools' : t.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                </option>
-              ))}
-            </select>
-            <button type="submit" className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-medium transition-colors">
-              Search
-            </button>
-          </form>
-        </div>
-
-        {/* Document count */}
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-gray-500 text-sm">
-            {fetching ? 'Loading...' : `${filteredDocs.length} document${filteredDocs.length !== 1 ? 's' : ''}`}
-          </p>
-        </div>
-
-        {/* Document list */}
-        {fetching ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
-            <p className="text-gray-400">Loading documents...</p>
-          </div>
-        ) : filteredDocs.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
-            <div className="text-5xl mb-4">📭</div>
-            <p className="text-gray-500 font-medium">No documents found</p>
-            <p className="text-gray-400 text-sm mt-1">Documents you generate with any tool will appear here automatically.</p>
-            <button onClick={() => router.push('/dashboard')} className="mt-4 px-5 py-2 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors">
-              Go to Tools
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredDocs.map(doc => {
-              const colors = toolColor(doc.tool_type)
-              return (
-                <div key={doc.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-purple-200 transition-colors">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${colors.dot}`}></span>
-                          {doc.tool_name || doc.tool_type}
-                        </span>
-                        {saveSuccess && selectedDoc?.id === doc.id && (
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ Saved</span>
-                        )}
-                      </div>
-                      <h3 className="text-gray-800 font-medium truncate">{doc.title}</h3>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-gray-400 text-xs">{formatDate(doc.created_at)} at {formatTime(doc.created_at)}</span>
-                        <span className="text-gray-300 text-xs">·</span>
-                        <span className="text-gray-400 text-xs">{wordCount(doc.content).toLocaleString()} words</span>
-                      </div>
-                      <p className="text-gray-400 text-xs mt-2 line-clamp-2">{doc.content?.substring(0, 150)}...</p>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => handleOpenDoc(doc, 'view')}
-                        className="px-3 py-1.5 text-purple-600 hover:bg-purple-50 rounded-lg text-sm font-medium transition-colors"
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => handleOpenDoc(doc, 'edit')}
-                        className="px-3 py-1.5 text-gray-600 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => setDeleteConfirmId(doc.id)}
-                        className="px-3 py-1.5 text-red-400 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Delete confirm inline */}
-                  {deleteConfirmId === doc.id && (
-                    <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-3">
-                      <p className="text-sm text-gray-600 flex-1">Delete this document? This cannot be undone.</p>
-                      <button
-                        onClick={() => setDeleteConfirmId(null)}
-                        className="px-3 py-1.5 text-gray-500 hover:bg-gray-100 rounded-lg text-sm transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => handleDelete(doc.id)}
-                        disabled={deleting}
-                        className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                      >
-                        {deleting ? 'Deleting...' : 'Yes, Delete'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </main>
-
-      {/* View / Edit Modal */}
-      {selectedDoc && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-
-            {/* Modal header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <div className="flex-1 min-w-0 mr-4">
-                {modalMode === 'edit' ? (
-                  <input
-                    type="text"
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    className="w-full text-lg font-semibold text-gray-800 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                ) : (
-                  <h2 className="text-lg font-semibold text-gray-800 truncate">{selectedDoc.title}</h2>
-                )}
-                <p className="text-gray-400 text-xs mt-1">
-                  {formatDate(selectedDoc.created_at)} · {selectedDoc.tool_name || selectedDoc.tool_type}
-                  {selectedDoc.updated_at && selectedDoc.updated_at !== selectedDoc.created_at && (
-                    <span className="ml-2 text-green-600">· Edited {formatDate(selectedDoc.updated_at)}</span>
-                  )}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                {modalMode === 'view' && (
-                  <>
-                    <button onClick={() => handleCopy(selectedDoc.content)} className="px-3 py-1.5 text-purple-600 hover:bg-purple-50 rounded-lg text-sm font-medium transition-colors">
-                      📋 Copy
-                    </button>
-                    <button onClick={() => handleExport(selectedDoc)} disabled={exporting} className="px-3 py-1.5 text-purple-600 hover:bg-purple-50 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
-                      {exporting ? 'Exporting...' : '📄 Export'}
-                    </button>
-                    <button onClick={() => setModalMode('edit')} className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors">
-                      ✏️ Edit
-                    </button>
-                  </>
-                )}
-                {modalMode === 'edit' && (
-                  <>
-                    <button onClick={() => setModalMode('view')} className="px-3 py-1.5 text-gray-500 hover:bg-gray-100 rounded-lg text-sm font-medium transition-colors">
-                      Cancel
-                    </button>
-                    <button onClick={handleSaveEdit} disabled={saving} className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white rounded-lg text-sm font-medium transition-colors">
-                      {saving ? 'Saving...' : '✓ Save Changes'}
-                    </button>
-                  </>
-                )}
-                <button onClick={handleCloseModal} className="px-3 py-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg text-sm transition-colors">
-                  ✕
-                </button>
-              </div>
-            </div>
-
-            {/* Modal content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {modalMode === 'view' ? (
-                <pre className="whitespace-pre-wrap text-gray-700 text-sm font-sans leading-relaxed">{selectedDoc.content}</pre>
-              ) : (
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  rows={30}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-700 resize-none font-mono text-sm"
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
 }
