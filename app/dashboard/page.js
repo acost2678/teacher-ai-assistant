@@ -104,6 +104,7 @@
       color: 'indigo',
       description: 'Lessons, differentiation & content',
       tools: [
+        { id: 'pd-generator', name: 'PD Generator', icon: '🎓', description: 'Research-based PD presentations with speaker notes', badge: 'NEW' },
         { id: 'lesson-plan', name: 'Lesson Plan', icon: '📖', description: 'Standards-aligned plans' },
         { id: 'batch-differentiation', name: 'Batch Differentiation', icon: '📚', description: 'Three tiered versions', badge: 'NEW' },
         { id: 'worksheet-generator', name: 'Worksheet Generator', icon: '📄', description: 'Differentiated worksheets', badge: 'NEW' },
@@ -136,7 +137,7 @@
     { id: 'batch-iep-updates', name: 'IEP Updates', icon: '📋', color: 'purple' },
     { id: 'lesson-plan', name: 'Lesson Plan', icon: '📖', color: 'indigo' },
     { id: 'rubric', name: 'Rubric', icon: '📊', color: 'orange' },
-    { id: 'behavior-plan', name: 'Behavior Plan', icon: '💚', color: 'teal' },
+    { id: 'pd-generator', name: 'PD Generator', icon: '🎓', color: 'teal' },
   ]
 
   const getColorClasses = (color) => {
@@ -170,7 +171,7 @@
             <img src="/axolotl-mascot.png" alt="AXEL" className="w-10 h-10" />
             <div>
               <h1 className="text-lg font-bold text-gray-800">Teacher AI Assistant</h1>
-              <p className="text-xs text-gray-500">58 tools to save your evenings</p>
+              <p className="text-xs text-gray-500">59 tools to save your evenings</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -182,10 +183,16 @@
               <span>Ask AXEL</span>
             </button>
             <button
-              onClick={() => router.push('/dashboard/history')}
-              className="text-gray-500 hover:text-gray-700 text-sm"
-            >
-              📜 History
+            onClick={() => router.push('/dashboard/history')}
+            className="text-gray-500 hover:text-gray-700 text-sm"
+>
+            📜 History
+             </button>
+            <button
+            onClick={() => router.push('/dashboard/help')}
+            className="text-gray-500 hover:text-gray-700 text-sm"
+>
+           ❓ Help
             </button>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
@@ -207,7 +214,7 @@
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
               <input
                 type="text"
-                placeholder="Search 58 tools..."
+                placeholder="Search 59 tools..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700"
@@ -326,7 +333,7 @@
           <div className="mt-12 text-center">
             <div className="inline-flex items-center gap-6 bg-white rounded-full px-8 py-3 shadow-sm border border-gray-100">
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">58</div>
+                <div className="text-2xl font-bold text-purple-600">59</div>
                 <div className="text-xs text-gray-500">Tools</div>
               </div>
               <div className="w-px h-8 bg-gray-200"></div>
@@ -336,8 +343,8 @@
               </div>
               <div className="w-px h-8 bg-gray-200"></div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">100%</div>
-                <div className="text-xs text-gray-500">Free</div>
+                <div className="text-2xl font-bold text-blue-600">$9</div>
+                <div className="text-xs text-gray-500">Membership</div> 
               </div>
             </div>
           </div>
