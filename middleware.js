@@ -1,26 +1,33 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 
 export async function middleware(req) {
   const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        get(name) { return req.cookies.get(name)?.value },
+        set(name, value, options) { res.cookies.set({ name, value, ...options }) },
+        remove(name, options) { res.cookies.set({ name, value: '', ...options }) },
+      },
+    }
+  )
 
   const { data: { session } } = await supabase.auth.getSession()
-
   const { pathname } = req.nextUrl
 
-  // Public routes — always accessible
-  const publicRoutes = ['/', '/pricing', '/auth/login', '/auth/signup', '/api/stripe']
-  const isPublic = publicRoutes.some(route => pathname.startsWith(route))
-
+  const isPublic = ['/', '/pricing', '/auth', '/api/stripe', '/api/auth'].some(
+    route => pathname.startsWith(route)
+  )
   if (isPublic) return res
 
-  // If not logged in, redirect to login
   if (!session) {
     return NextResponse.redirect(new URL('/auth/login', req.url))
   }
 
-  // Check user plan for dashboard access
   if (pathname.startsWith('/dashboard')) {
     const { data: planData } = await supabase
       .from('user_plans')
@@ -30,12 +37,10 @@ export async function middleware(req) {
 
     const plan = planData?.plan
 
-    // Allow founding members and paid users
     if (plan === 'paid' || plan === 'founding') {
       return res
     }
 
-    // No plan found — redirect to pricing
     return NextResponse.redirect(new URL('/pricing', req.url))
   }
 
@@ -43,5 +48,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/api/:path*'],
+  matcher: ['/dashboard/:path*'],
 }
