@@ -3,18 +3,17 @@ import { NextResponse } from 'next/server'
 export async function middleware(req) {
   const { pathname } = req.nextUrl
 
-  // Only protect dashboard routes
   if (!pathname.startsWith('/dashboard')) {
     return NextResponse.next()
   }
 
-  // Check for Supabase auth cookie
-  const cookies = req.cookies
-  const hasSession = Array.from(cookies.getAll()).some(
-    cookie => cookie.name.includes('sb-') && cookie.name.includes('-auth-token')
-  )
+  // Check for any auth-related cookie
+  const cookieHeader = req.headers.get('cookie') || ''
+  const hasAuth = cookieHeader.includes('sb-') || 
+                  cookieHeader.includes('next-auth') ||
+                  cookieHeader.includes('supabase')
 
-  if (!hasSession) {
+  if (!hasAuth) {
     return NextResponse.redirect(new URL('/auth/login', req.url))
   }
 
