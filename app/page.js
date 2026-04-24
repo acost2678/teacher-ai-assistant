@@ -84,7 +84,7 @@ export default function LandingPage() {
           </div>
         </div>
         <button
-          onClick={() => router.push('/auth/login')}
+          onClick={() => router.push('/pricing')}
           style={{ background: '#007A8A', color: 'white', border: 'none', padding: '10px 24px', borderRadius: 100, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}
         >
           Try the Teacher OS & AI Assistant
@@ -109,7 +109,7 @@ export default function LandingPage() {
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
               <button
-                onClick={() => router.push('/auth/login')}
+                onClick={() => router.push('/pricing')}
                 style={{ background: '#007A8A', color: 'white', border: 'none', padding: '16px 32px', borderRadius: 100, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', boxShadow: '0 8px 32px rgba(13,92,99,0.3)' }}
               >
                 Try the Teacher OS & AI Assistant →
@@ -263,11 +263,11 @@ export default function LandingPage() {
           </div>
           <div className="scroll-fade" style={{ ...scrollFadeStyle, background: '#007A8A', borderRadius: 32, padding: 64, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center', marginTop: 60 }}>
             <div>
-              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 80, fontWeight: 700, color: 'white', lineHeight: 1 }}><sup style={{ fontSize: 32, verticalAlign: 'super' }}>$</sup>9</div>
+              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 80, fontWeight: 700, color: 'white', lineHeight: 1 }}><sup style={{ fontSize: 32, verticalAlign: 'super' }}>$</sup>9.99</div>
               <div style={{ fontSize: 16, color: 'rgba(255,255,255,0.6)', marginBottom: 24, marginTop: 8 }}>per month · cancel anytime</div>
               <p style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, fontStyle: 'italic' }}>"Less than a cup of coffee a week — and it gives you your evenings back."</p>
               <button
-                onClick={() => router.push('/auth/login')}
+                onClick={() => router.push('/pricing')}
                 style={{ display: 'block', width: '100%', background: 'white', color: '#007A8A', border: 'none', padding: '18px 32px', borderRadius: 100, fontSize: 16, fontWeight: 700, cursor: 'pointer', marginTop: 32, fontFamily: 'DM Sans, sans-serif' }}
               >
                 Try the Teacher OS & AI Assistant →
@@ -296,7 +296,7 @@ export default function LandingPage() {
             Join hundreds of educators who have reclaimed their evenings with AI tools built by someone who understands your classroom.
           </p>
           <button
-            onClick={() => router.push('/auth/login')}
+            onClick={() => router.push('/pricing')}
             style={{ background: '#00B4C8', color: 'white', border: 'none', padding: '18px 40px', borderRadius: 100, fontSize: 17, fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', boxShadow: '0 12px 40px rgba(26,138,125,0.4)' }}
           >
             Try the Teacher OS & AI Assistant →
