@@ -136,7 +136,7 @@ export default function PricingPage() {
             />
             <input
               type="text"
-              placeholder="Invite code (e.g. FOUNDING2026)"
+               placeholder="Enter your invite code"
               value={inviteCode}
               onChange={(e) => { setInviteCode(e.target.value); setMode('invite') }}
               style={{ width: '100%', padding: '12px 16px', borderRadius: 100, border: '1px solid #E0F7FA', fontSize: 14, marginBottom: 12, fontFamily: 'DM Sans, sans-serif', outline: 'none', boxSizing: 'border-box', color: '#1C2B2D', textTransform: 'uppercase' }}
