@@ -7,6 +7,17 @@ export async function POST(request) {
     const { email } = await request.json()
 
     const baseUrl = process.env.NEXTAUTH_URL
+    
+    // DEBUG: log everything we need to diagnose
+    console.log('=== CHECKOUT DEBUG ===')
+    console.log('baseUrl raw:', JSON.stringify(baseUrl))
+    console.log('baseUrl type:', typeof baseUrl)
+    console.log('baseUrl length:', baseUrl?.length)
+    console.log('success_url will be:', `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`)
+    console.log('cancel_url will be:', `${baseUrl}/pricing`)
+    console.log('STRIPE_PRICE_ID:', JSON.stringify(process.env.STRIPE_PRICE_ID))
+    console.log('======================')
+    
     if (!baseUrl) {
       throw new Error('NEXTAUTH_URL is not set')
     }
