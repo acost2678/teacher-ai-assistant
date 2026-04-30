@@ -6,6 +6,11 @@ export async function POST(request) {
   try {
     const { email } = await request.json()
 
+    const baseUrl = process.env.NEXTAUTH_URL
+    if (!baseUrl) {
+      throw new Error('NEXTAUTH_URL is not set')
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'subscription',
@@ -16,8 +21,8 @@ export async function POST(request) {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXTAUTH_URL}/pricing`,
+      success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/pricing`,
       metadata: {
         email: email,
       },
@@ -26,6 +31,9 @@ export async function POST(request) {
     return Response.json({ url: session.url })
   } catch (error) {
     console.error('Stripe checkout error:', error)
-    return Response.json({ error: 'Failed to create checkout session' }, { status: 500 })
+    return Response.json(
+      { error: error.message || 'Failed to create checkout session' },
+      { status: 500 }
+    )
   }
 }
