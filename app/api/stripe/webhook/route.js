@@ -31,20 +31,60 @@ export async function POST(request) {
         const session = event.data.object
         const email = session.customer_email || session.metadata?.email
 
-        if (email) {
-          const { data: users } = await supabase.auth.admin.listUsers()
-          const user = users?.users?.find(u => u.email === email)
+        if (!email) {
+          console.error('No email found on checkout session', session.id)
+          break
+        }
 
-          if (user) {
-            await supabase.from('user_plans').upsert({
-              id: user.id,
-              plan: 'paid',
-              stripe_customer_id: session.customer,
-              stripe_subscription_id: session.subscription,
-              updated_at: new Date().toISOString(),
-            })
-            console.log(`User ${email} upgraded to paid plan`)
+        // Step 1: Check if user already exists in Supabase Auth
+        const { data: existingUsers } = await supabase.auth.admin.listUsers()
+        let user = existingUsers?.users?.find(u => u.email === email)
+
+        // Step 2: If user doesn't exist, create them
+        if (!user) {
+          console.log(`Creating new Supabase user for ${email}`)
+          const { data: newUserData, error: createError } = await supabase.auth.admin.createUser({
+            email: email,
+            email_confirm: true, // Mark email as confirmed since they paid
+          })
+
+          if (createError) {
+            console.error('Failed to create Supabase user:', createError.message)
+            break
           }
+
+          user = newUserData.user
+          console.log(`Created Supabase user ${user.id} for ${email}`)
+
+          // Step 3: Send them a magic link so they can log in and set a password
+          const { error: linkError } = await supabase.auth.admin.generateLink({
+            type: 'magiclink',
+            email: email,
+            options: {
+              redirectTo: `${process.env.NEXTAUTH_URL}/auth/login`,
+            },
+          })
+
+          if (linkError) {
+            console.error('Failed to send magic link:', linkError.message)
+          } else {
+            console.log(`Magic link sent to ${email}`)
+          }
+        }
+
+        // Step 4: Upsert the user's plan as 'paid'
+        const { error: planError } = await supabase.from('user_plans').upsert({
+          id: user.id,
+          plan: 'paid',
+          stripe_customer_id: session.customer,
+          stripe_subscription_id: session.subscription,
+          updated_at: new Date().toISOString(),
+        })
+
+        if (planError) {
+          console.error('Failed to update user_plans:', planError.message)
+        } else {
+          console.log(`User ${email} upgraded to paid plan`)
         }
         break
       }
@@ -53,7 +93,6 @@ export async function POST(request) {
         const subscription = event.data.object
         const customerId = subscription.customer
 
-        // Find user by stripe customer id
         const { data: planData } = await supabase
           .from('user_plans')
           .select('id')
