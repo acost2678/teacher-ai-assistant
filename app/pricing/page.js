@@ -9,34 +9,13 @@ export default function PricingPage() {
   const [inviteCode, setInviteCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [mode, setMode] = useState('paid') // 'paid' or 'invite'
+  const [mode, setMode] = useState('invite')
 
   const VALID_INVITE_CODES = ['FOUNDING2026', 'THRIVE2026', 'TEACHERFREE']
 
-  const handlePaidCheckout = async () => {
-    if (!email || !email.includes('@')) {
-      setError('Please enter a valid email address')
-      return
-    }
-    setLoading(true)
-    setError('')
-    try {
-      const res = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
-      const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        setError('Something went wrong. Please try again.')
-      }
-    } catch (err) {
-      setError('Something went wrong. Please try again.')
-    }
-    setLoading(false)
-  }
+  // STRIPE_DISABLED 2026-06-06 — paid checkout handler removed.
+  // Skool is the only paid path. Backend /api/stripe/checkout route is still live.
+  // To restore: pull previous version from git history.
 
   const handleInviteCode = async () => {
     if (!email || !email.includes('@')) {
@@ -76,21 +55,21 @@ export default function PricingPage() {
         {/* Two options */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
 
-          {/* Paid option */}
+          {/* Skool community CTA */}
           <div style={{ background: '#007A8A', borderRadius: 24, padding: 40, color: 'white', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }} />
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', marginBottom: 16 }}>Full Access</div>
-            <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 56, fontWeight: 700, lineHeight: 1, marginBottom: 8 }}>$9.99</div>
-            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 32 }}>per month · cancel anytime</div>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', marginBottom: 16 }}>Join the Community</div>
+            <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 36, fontWeight: 700, lineHeight: 1.1, marginBottom: 8 }}>Thrive & Learn on Skool</div>
+            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 32 }}>Community + full app access</div>
 
             <ul style={{ listStyle: 'none', padding: 0, marginBottom: 32 }}>
               {[
-                '59 AI-powered tools',
-                'Unlimited document generation',
-                'Export to .docx & PowerPoint',
-                'Save to Google Drive',
-                'FERPA-compliant design',
+                'Connect with educators worldwide',
+                'Access to all 59 AI-powered tools',
+                'Exclusive trainings & live calls',
                 'New tools added regularly',
+                'FERPA-compliant design',
+                'Receive your invite code inside',
               ].map((f, i) => (
                 <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, padding: '7px 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                   <span style={{ width: 20, height: 20, background: 'rgba(255,255,255,0.15)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0 }}>✓</span>
@@ -99,19 +78,11 @@ export default function PricingPage() {
               ))}
             </ul>
 
-            <input
-              type="email"
-              placeholder="Your email address"
-              value={email}
-              onChange={(e) => { setEmail(e.target.value); setMode('paid') }}
-              style={{ width: '100%', padding: '12px 16px', borderRadius: 100, border: 'none', fontSize: 14, marginBottom: 12, fontFamily: 'DM Sans, sans-serif', outline: 'none', boxSizing: 'border-box' }}
-            />
             <button
-              onClick={handlePaidCheckout}
-              disabled={loading && mode === 'paid'}
+              onClick={() => window.open('https://www.skool.com/thrive-learn-8266', '_blank')}
               style={{ width: '100%', background: 'white', color: '#007A8A', border: 'none', padding: '14px', borderRadius: 100, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}
             >
-              {loading && mode === 'paid' ? 'Redirecting...' : 'Get Access — $9.99/mo →'}
+              Join Thrive & Learn on Skool →
             </button>
           </div>
 
@@ -136,7 +107,7 @@ export default function PricingPage() {
             />
             <input
               type="text"
-               placeholder="Enter your invite code"
+              placeholder="Enter your invite code"
               value={inviteCode}
               onChange={(e) => { setInviteCode(e.target.value); setMode('invite') }}
               style={{ width: '100%', padding: '12px 16px', borderRadius: 100, border: '1px solid #E0F7FA', fontSize: 14, marginBottom: 12, fontFamily: 'DM Sans, sans-serif', outline: 'none', boxSizing: 'border-box', color: '#1C2B2D', textTransform: 'uppercase' }}
